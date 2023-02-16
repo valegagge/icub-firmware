@@ -1458,6 +1458,11 @@ static void JointSet_do_wait_calibration(JointSet* o)
             break;
     }
     
+    //Debug code
+    char message[150];
+    snprintf(message, sizeof(message), "JointSet_do_wait_calibration: is_calib=%d.",o->is_calibrated );
+    JointSet_send_debug_message(message, 0, 0, 0);
+    
     if (!o->is_calibrated) return;
     
     for (int es=0; es<E; ++es)
@@ -1472,6 +1477,9 @@ static void JointSet_do_wait_calibration(JointSet* o)
     o->calibration_in_progress = eomc_calibration_typeUndefined;
     
     JointSet_do_odometry(o);
+
+    snprintf(message, sizeof(message), "JointSet_do_wait_calibration: afetr JointSet_do_odometry" );
+    JointSet_send_debug_message(message, 0, 0, 0);
     
     o->control_mode = eomc_controlmode_idle;
 
@@ -1481,7 +1489,12 @@ static void JointSet_do_wait_calibration(JointSet* o)
     }
     
     JointSet_set_control_mode(o, eomc_controlmode_cmd_position);
+    
+    snprintf(message, sizeof(message), "JointSet_do_wait_calibration: afetr setcontrolmodePos" );
+    JointSet_send_debug_message(message, 0, 0, 0);
 }
+bool isMais(void)
+{return false;}
 
 void JointSet_calibrate(JointSet* o, uint8_t e, eOmc_calibrator_t *calibrator)
 {
@@ -1562,6 +1575,11 @@ void JointSet_calibrate(JointSet* o, uint8_t e, eOmc_calibrator_t *calibrator)
                 return;
             }
             
+            ////debug code
+            char info[50];
+            snprintf(info, 50, "vmax=%d,vim=%d",calibrator->params.type6.vmax, calibrator->params.type6.vmin);
+            JointSet_send_debug_message(info, e, 0, 0);
+            ////debug code ended
                 
             //if I'm here I can perform calib type 6.
             
@@ -1582,32 +1600,49 @@ void JointSet_calibrate(JointSet* o, uint8_t e, eOmc_calibrator_t *calibrator)
             // 3) calculate new joint encoder factor and param_zero
             eOmc_joint_config_t *jconfig = &o->joint[e].eo_joint_ptr->config;
            
-            float computedJntEncoderResolution = (float)(calibrator->params.type6.vmax - calibrator->params.type6.vmin) / (float) (jconfig->userlimits.max  - jconfig->userlimits.min);
+           if (isMais())
+           {
+           
+                float computedJntEncoderResolution = (float)(calibrator->params.type6.vmax - calibrator->params.type6.vmin) / (float) (jconfig->userlimits.max  - jconfig->userlimits.min);
             
-            eOresult_t res = eo_appEncReader_UpdatedMaisConversionFactors(eo_appEncReader_GetHandle(), e, computedJntEncoderResolution);
-            if(eores_OK != res)
-            {    
+                eOresult_t res = eo_appEncReader_UpdatedMaisConversionFactors(eo_appEncReader_GetHandle(), e, computedJntEncoderResolution);
+                if(eores_OK != res)
+                {    
+                    ////debug code
+                    char info[70];
+                    snprintf(info, 70, "calib6: error updating Mais conversion factor j%d", e);
+                    JointSet_send_debug_message(info, e, 0, 0);
+                    ////debug code ended
+                    return;
+                }
+
+                AbsEncoder_config_resolution(o->absEncoder+e, computedJntEncoderResolution);
+            
+                //Now I need to re-init absEncoder because I chenged maisConversionFactor, therefore the values returned by EOappEncoreReder are changed.
+                o->absEncoder[e].state.bits.not_initialized = TRUE;
+
+                float computedJntEncoderZero =  - (float)(jconfig->userlimits.min) + ((float)(calibrator->params.type6.vmin) / computedJntEncoderResolution);
+                o->joint[e].running_calibration.data.type6.computedZero = computedJntEncoderZero;
+
+                o->joint[e].running_calibration.data.type6.targetpos = target_pos / computedJntEncoderResolution - computedJntEncoderZero; //convert target pos from mais unit to icub deegre
+
+                o->joint[e].running_calibration.data.type6.velocity = calibrator->params.type6.velocity;
+                
+                o->joint[e].running_calibration.data.type6.state = calibtype6_st_jntEncResComputed;
+                
+            }
+            else
+            {
+                o->joint[e].running_calibration.data.type6.targetpos = target_pos;
+                o->joint[e].running_calibration.data.type6.velocity = calibrator->params.type6.velocity;
+                o->joint[e].running_calibration.data.type6.state = calibtype6_st_jntEncResComputed;
+                o->joint[e].running_calibration.data.type6.computedZero = 0;
                 ////debug code
-                char info[70];
-                snprintf(info, 70, "calib6: error updating Mais conversion factor j%d", e);
+                char info[50];
+                snprintf(info, 50, "targetPos=%.1f",o->joint[e].running_calibration.data.type6.targetpos);
                 JointSet_send_debug_message(info, e, 0, 0);
                 ////debug code ended
-                return;
             }
-
-            AbsEncoder_config_resolution(o->absEncoder+e, computedJntEncoderResolution);
-            
-            //Now I need to re-init absEncoder because I chenged maisConversionFactor, therefore the values returned by EOappEncoreReder are changed.
-            o->absEncoder[e].state.bits.not_initialized = TRUE;
-
-            float computedJntEncoderZero =  - (float)(jconfig->userlimits.min) + ((float)(calibrator->params.type6.vmin) / computedJntEncoderResolution);
-            o->joint[e].running_calibration.data.type6.computedZero = computedJntEncoderZero;
-
-            o->joint[e].running_calibration.data.type6.targetpos = target_pos / computedJntEncoderResolution - computedJntEncoderZero; //convert target pos from mais unit to icub deegre
-
-            o->joint[e].running_calibration.data.type6.velocity = calibrator->params.type6.velocity;
-            
-            o->joint[e].running_calibration.data.type6.state = calibtype6_st_jntEncResComputed;
             
         }
         break;
