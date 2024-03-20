@@ -680,14 +680,6 @@ extern eOresult_t eo_appEncReader_GetValue(EOappEncReader *p, uint8_t jomo, eOen
                     prop.valueinfo->errortype = encreader_err_AKSIM2_GENERIC ;
                     errorparam = 0;
                     
-                    // notify the error (check and re-check)
-                    eOerrmanDescriptor_t errdes = {0};
-                    errdes.sourcedevice         = eo_errman_sourcedevice_localboard;
-                    errdes.sourceaddress        = 0;
-                    errdes.par16                = 0;
-                    errdes.par64                = (uint64_t) (diagn.info.aksim2_status_crc) << 32;
-                    errdes.code                 = eoerror_code_get(eoerror_category_HardWare, eoerror_value_HW_encoder_not_connected);
-                    eo_errman_Error(eo_errman_GetHandle(), eo_errortype_error, NULL, NULL, &errdes);
                 }
             } break;
             
@@ -1375,32 +1367,22 @@ static eObool_t s_eo_appEncReader_IsValidValue_AKSIM2(hal_spiencoder_diagnostic_
     // in case of errors we return false. Initially we assume no errors
     eObool_t ret = eobool_true;
     
-    // preperare data for diagnostics
-    eOerrmanDescriptor_t errdes = {0};
-    errdes.sourcedevice         = eo_errman_sourcedevice_localboard;
-    errdes.sourceaddress        = 0;
-    errdes.par16                = 0;
-    errdes.par64                = (uint64_t) (diag->info.aksim2_status_crc) << 32;
-
     // In case of errors we send human readable diagnostics messages
     if(0x04 == (0x04 & diag->info.aksim2_status_crc))
     {
-        errdes.code                 = eoerror_code_get(eoerror_category_HardWare, eoerror_value_HW_encoder_invalid_value);
-        eo_errman_Error(eo_errman_GetHandle(), eo_errortype_error, NULL, NULL, &errdes);
+        *error = encreader_err_AKSIM2_INVALID_DATA;
         ret = eobool_false;
     }
 
     if(0x02 == (0x02 & diag->info.aksim2_status_crc))
     {
-        errdes.code                 = eoerror_code_get(eoerror_category_HardWare, eoerror_value_HW_encoder_close_to_limits);
-        eo_errman_Error(eo_errman_GetHandle(), eo_errortype_error, NULL, NULL, &errdes);
+        *error = encreader_err_AKSIM2_CLOSE_TO_LIMITS;
         ret = eobool_false;
     }
     
     if(0x01 == (0x01 & diag->info.aksim2_status_crc))
     {
-        errdes.code                 = eoerror_code_get(eoerror_category_HardWare, eoerror_value_HW_encoder_crc);
-        eo_errman_Error(eo_errman_GetHandle(), eo_errortype_error, NULL, NULL, &errdes);
+        *error = encreader_err_AKSIM2_CRC_ERROR;
         ret = eobool_false;
     }
     
