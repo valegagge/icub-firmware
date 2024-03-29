@@ -49,10 +49,12 @@
 #include "EoError.h"
 #include "EOtheErrorManager.h"
 #include "EOVtheSystem.h"
-    
+        
 #if defined(EMBOT_APP_SCOPE_core)
 #include "embot_app_scope.h"
 #endif
+#include "encoder_rescale2icubDeg.h"   /* Model header file */ //TAG: _byModeling
+
 
 // --------------------------------------------------------------------------------------------------------------------
 // - declaration of extern public interface
@@ -136,6 +138,7 @@ static void s_eo_appEncReader_deconfigure_NONSPI_encoders(EOappEncReader *p);
 static void s_eo_appEncReader_configure_NONSPI_encoders(EOappEncReader *p);
 
 static uint32_t s_eo_appEncReader_rescale2icubdegrees(uint32_t val_raw, uint8_t jomo, eOmc_position_t pos);
+static uint32_t s_eo_appEncReader_rescale2icubdegrees_byModeling(uint32_t val_raw, uint8_t jomo, eOmc_position_t pos);
 static uint32_t s_eo_appEncReader_mais_rescale2icubdegrees(EOappEncReader* p, uint32_t val_raw, uint8_t jomo);
 static uint32_t s_eo_appEncReader_psc_rescale2icubdegrees(EOappEncReader* p, int16_t val_raw);
 static uint32_t s_eo_appEncReader_pos_rescale2icubdegrees(EOappEncReader* p, int16_t val_raw);
@@ -216,6 +219,13 @@ static EOappEncReader s_eo_theappencreader =
 };
 
 
+
+//TAG: _byModeling
+static RT_MODEL_encoder_rescale2icub_T encoder_rescale2icubDeg_M_;
+static RT_MODEL_encoder_rescale2icub_T *const encoder_rescale2icubDeg_MPtr = &encoder_rescale2icubDeg_M_;         /* Real-time model */
+static ExtU_encoder_rescale2icubDeg_T encoder_rescale2icubDeg_U;/* External inputs */
+static ExtY_encoder_rescale2icubDeg_T encoder_rescale2icubDeg_Y;/* External outputs */
+
 // --------------------------------------------------------------------------------------------------------------------
 // - definition of extern public functions
 // --------------------------------------------------------------------------------------------------------------------
@@ -255,6 +265,9 @@ extern EOappEncReader* eo_appEncReader_Initialise(void)
     s_eo_appEncReader_amodiag_Init();
         
     s_eo_theappencreader.initted = eobool_true;
+    
+    
+    encoder_rescale2icubDeg_initialize(encoder_rescale2icubDeg_MPtr, &encoder_rescale2icubDeg_U, &encoder_rescale2icubDeg_Y); //TAG: _byModeling
     return(&s_eo_theappencreader);
 }
 
@@ -295,6 +308,8 @@ extern eOresult_t eo_appEncReader_Deactivate(EOappEncReader *p)
     
     s_eo_theappencreader.totalnumberofencoders = 0;
     s_eo_theappencreader.active = eobool_false;    
+    
+    encoder_rescale2icubDeg_terminate(encoder_rescale2icubDeg_MPtr); //TAG: _byModeling
     return(eores_OK);
 }
 
@@ -687,8 +702,12 @@ extern eOresult_t eo_appEncReader_GetValue(EOappEncReader *p, uint8_t jomo, eOen
                     // check validity for aksim2
                     if(eobool_true == s_eo_appEncReader_IsValidValue_AKSIM2(jomo, &diagn, &prop.valueinfo->errortype))
                     {
-                        // rescale the position value of the position to icubdegrees
-                        prop.valueinfo->value[0] = s_eo_appEncReader_rescale2icubdegrees(position, jomo, (eOmc_position_t)prop.descriptor->pos);
+//                        #ifndef AKSIM_RESCALE_MODELING
+//                        // rescale the position value of the position to icubdegrees
+//                        prop.valueinfo->value[0] = s_eo_appEncReader_rescale2icubdegrees(position, jomo, (eOmc_position_t)prop.descriptor->pos);
+//                        #elif
+                        prop.valueinfo->value[0] =  s_eo_appEncReader_rescale2icubdegrees_byModeling(position, jomo, (eOmc_position_t)prop.descriptor->pos);
+                        //#endif
                     }
                     else
                     {
@@ -1674,6 +1693,70 @@ static uint32_t s_eo_appEncReader_rescale2icubdegrees(uint32_t val_raw, uint8_t 
 
 }
 
+
+
+static uint32_t s_eo_appEncReader_rescale2icubdegrees_byModeling(uint32_t val_raw, uint8_t jomo, eOmc_position_t pos)
+{
+
+    // this is the correct code: we divide by the encoderconversionfactor ...
+    // formulas are:
+    // in xml file there is GENERAL:Encoders = tidegconv = 182.044 = (64*1024/360) is the conversion from degrees to icubdeg and is expressed as [icubdeg/deg]
+    // In joint->config.jntEncoderResolution and motor->config.rotorEncoderResolution there are the resolutions of joint and motor encoders,
+    // that is number of ticks per round angle.
+    // 
+    // Thus, to obtain the icub-degress in here we must divide the reading of the encoder expressed in [ticks] by
+    // divider and multiply for 65535. (divider is joint->config.jntEncoderResolution or motor->config.rotorEncoderResolution)
+
+    // moreover .... if the encoderconversionfactor is negative, then i assume it is positive. because its sign is managed internally in the ems-controller
+
+
+    uint32_t retval = val_raw;
+    int32_t divider = 1;
+
+    
+    if(eomc_pos_atjoint == pos)
+    {
+        eOmc_joint_t *joint = (eOmc_joint_t*) eoprot_entity_ramof_get(eoprot_board_localboard, eoprot_endpoint_motioncontrol, eoprot_entity_mc_joint, jomo);
+                
+        if(NULL == joint)
+        {
+            return(2000);
+        }
+        
+        divider = joint->config.jntEncoderResolution;
+    }
+    else if(eomc_pos_atmotor == pos)
+    {
+        eOmc_motor_t *motor = (eOmc_motor_t*) eoprot_entity_ramof_get(eoprot_board_localboard, eoprot_endpoint_motioncontrol, eoprot_entity_mc_motor, jomo);
+                
+        if(NULL == motor)
+        {
+            return(2000);
+        }
+        
+        divider = motor->config.rotorEncoderResolution;
+    }
+    else
+    {
+        return(0);
+    }
+    
+    //check divider validity
+    if(0.0f == divider)
+    {
+        return(3000);       
+    }
+
+    encoder_rescale2icubDeg_U.resolution = divider;
+    encoder_rescale2icubDeg_U.raw_value = val_raw;
+    encoder_rescale2icubDeg_U.is_in_iCubDeg = 1;
+    
+    encoder_rescale2icubDeg_step(encoder_rescale2icubDeg_MPtr, &encoder_rescale2icubDeg_U, &encoder_rescale2icubDeg_Y);
+    retval = encoder_rescale2icubDeg_Y.out;
+    
+    return(retval);
+
+}
 
 static hal_spiencoder_stream_t s_eo_appEncReader_get_spi_stream(EOappEncReader* p, uint8_t port)
 {

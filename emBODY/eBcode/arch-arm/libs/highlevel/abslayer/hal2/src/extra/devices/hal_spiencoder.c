@@ -802,7 +802,7 @@ extern hal_result_t hal_spiencoder_get_value2(hal_spiencoder_t id, hal_spiencode
         diagn->info.aksim2_status_crc = 0;
         
         // check status bits
-        if(0x0 == intitem->status_bits || 0x1 == intitem->status_bits)
+        if(0x1 == intitem->status_bits)
         {
             // Error - the position data is not valid
             diagn->type = hal_spiencoder_diagnostic_type_aksim2_invalid_data;
