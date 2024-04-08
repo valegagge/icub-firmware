@@ -1722,6 +1722,10 @@ static uint32_t s_eo_appEncReader_rescale2icubdegrees_byModeling(uint32_t val_ra
     {
         return(3000);       
     }
+
+    encoder_rescale2icubDeg_U.resolution = divider;
+    encoder_rescale2icubDeg_U.raw_value = val_raw;
+    encoder_rescale2icubDeg_U.is_in_iCubDeg = 1;
     
     encoder_rescale2icubDeg_step(encoder_rescale2icubDeg_MPtr, &encoder_rescale2icubDeg_U, &encoder_rescale2icubDeg_Y);
     retval = encoder_rescale2icubDeg_Y.out;
