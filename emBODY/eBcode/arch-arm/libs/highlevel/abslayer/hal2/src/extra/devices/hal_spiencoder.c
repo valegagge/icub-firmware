@@ -828,20 +828,21 @@ extern hal_result_t hal_spiencoder_get_value2(hal_spiencoder_t id, hal_spiencode
         if(calculated_crc != intitem->crc)
         {
             // Error - invalid crc
-            diagn->type = hal_spiencoder_diagnostic_type_aksim2_crc_error;
-            diagn->info.aksim2_status_crc |= 0x01;
+            diagn->info.aksim2_status = (0x01)<<2;
+            return(hal_res_OK); //here I return becaus ein case of crc error the other two status bit are not reliable
         }
         
         
-        // Check for SPI reading errors: if all data are FF then the encoder is not connected or the SPI is not working.
+         // Check for SPI reading errors: if all data are FF then the encoder is not connected or the SPI is not working.
         if (intitem->multiturncounter == 0xFFFF && intitem->position == 0x7FFFF && intitem->status_bits == 0x03 && intitem->crc == 0xFF)
         {
-            // TODO: check if it can be manage it, or remove everything berfore the return because these diagnostic is not currently used.
-            diagn->type = hal_spiencoder_diagnostic_type_aksim2_not_connected;
-            diagn->info.value = 0;
+            //TODO: valegagge in case of SPI disconnect what we have? do we read all ff?
             return hal_res_NOK_generic;
         }
         
+        diagn->info.aksim2_status = 0;
+        diagn->info.aksim2_status |= intitem->status_bits;
+
         *pos = intitem->position;
     }
     else if (intitem->config.type == hal_spiencoder_typeAMO)

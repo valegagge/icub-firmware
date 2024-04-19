@@ -113,7 +113,7 @@ typedef union
 {
     hal_spiencoder_errors_flags     flags; 
     uint32_t                        value; // contains bits whose meaning is specified by hal_spiencoder_diagnostic_type_t 
-    uint8_t                         aksim2_status_crc: 3;
+    uint8_t                         aksim2_status: 3;
 } hal_spiencoder_diagnostic_info_t;
 
 typedef enum
