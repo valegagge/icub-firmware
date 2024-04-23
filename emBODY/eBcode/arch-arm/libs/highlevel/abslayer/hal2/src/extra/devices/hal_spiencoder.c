@@ -818,6 +818,7 @@ extern hal_result_t hal_spiencoder_get_value2(hal_spiencoder_t id, hal_spiencode
         // check for CRC errors
         uint64_t dw_CRCinputData = 0;
         uint8_t calculated_crc = 0;
+        diagn->info.aksim2_status = 0;
         
         dw_CRCinputData = ((uint64_t)intitem->rxframes[1][0] << 32) + ((uint64_t)intitem->rxframes[1][1] << 24) +
                           ((uint64_t)intitem->rxframes[1][2] << 16) + ((uint64_t)intitem->rxframes[1][3] << 8) +
@@ -828,7 +829,7 @@ extern hal_result_t hal_spiencoder_get_value2(hal_spiencoder_t id, hal_spiencode
         if(calculated_crc != intitem->crc)
         {
             // Error - invalid crc
-            diagn->info.aksim2_status = (0x01)<<2;
+            diagn->info.aksim2_status = 0x01;
             return(hal_res_OK); //here I return becaus ein case of crc error the other two status bit are not reliable
         }
         
@@ -840,8 +841,8 @@ extern hal_result_t hal_spiencoder_get_value2(hal_spiencoder_t id, hal_spiencode
             return hal_res_NOK_generic;
         }
         
-        diagn->info.aksim2_status = 0;
-        diagn->info.aksim2_status |= intitem->status_bits;
+
+        diagn->info.aksim2_status |= (intitem->status_bits)<< 1;
 
         *pos = intitem->position;
     }
