@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'encoder_reader_aksim2_complete_model'.
  *
- * Model version                  : 2.77
+ * Model version                  : 2.81
  * Simulink Coder version         : 24.1 (R2024a) 19-Nov-2023
- * C/C++ source code generated on : Tue Apr 23 16:40:35 2024
+ * C/C++ source code generated on : Wed Apr 24 17:23:07 2024
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex-M
@@ -36,7 +36,7 @@ typedef int16_T hal_result_enum_t;
 typedef int8_T aksim2_error_type;
 
 /* enum aksim2_error_type */
-#define aksim2_error_none              ((aksim2_error_type)0)    /* Default value */
+#define aksim2_error_none              ((aksim2_error_type)6)    /* Default value */
 #define aksim2_error_crc               ((aksim2_error_type)1)
 #define aksim2_error_invalid_data      ((aksim2_error_type)2)
 #define aksim2_error_close_to_limit    ((aksim2_error_type)4)

@@ -799,20 +799,13 @@ extern hal_result_t hal_spiencoder_get_value2(hal_spiencoder_t id, hal_spiencode
         // 100 --> the position data is not valid
         // 010 --> the position data is valid, but some operating conditions are close to limits.
         // 001 --> Inverted CRC is invalid
-        diagn->info.aksim2_status_crc = 0;
+        diagn->info.aksim2_status = 0;
         
-        // check status bits
-        if(0x1 == intitem->status_bits)
+        // Check for SPI reading errors: if all data are FF then the encoder is not connected or the SPI is not working.
+        if (intitem->multiturncounter == 0xFFFF && intitem->position == 0x7FFFF && intitem->status_bits == 0x03 && intitem->crc == 0xFF)
         {
-            // Error - the position data is not valid
-            diagn->type = hal_spiencoder_diagnostic_type_aksim2_invalid_data;
-            diagn->info.aksim2_status_crc |= 0x04;
-        }    
-        if(0x2 == intitem->status_bits)
-        {
-            // Warning - the position data is valid, but some operating conditions are close to limits
-            diagn->type = hal_spiencoder_diagnostic_type_aksim2_close_to_limits;
-            diagn->info.aksim2_status_crc |= 0x02;
+            //TODO: valegagge in case of SPI disconnect what we have? do we read all ff?
+            return hal_res_NOK_generic;
         }
         
         // check for CRC errors
@@ -833,16 +826,22 @@ extern hal_result_t hal_spiencoder_get_value2(hal_spiencoder_t id, hal_spiencode
             return(hal_res_OK); //here I return becaus ein case of crc error the other two status bit are not reliable
         }
         
+        // check status bits
+//        if(0x1 == intitem->status_bits)
+//        {
+//            // Error - the position data is not valid
+//            diagn->type = hal_spiencoder_diagnostic_type_aksim2_invalid_data;
+//            diagn->info.aksim2_status |= 0x02;
+//        }    
+//        if(0x2 == intitem->status_bits)
+//        {
+//            // Warning - the position data is valid, but some operating conditions are close to limits
+//            diagn->type = hal_spiencoder_diagnostic_type_aksim2_close_to_limits;
+//            diagn->info.aksim2_status |= 0x04;
+//        }
         
-         // Check for SPI reading errors: if all data are FF then the encoder is not connected or the SPI is not working.
-        if (intitem->multiturncounter == 0xFFFF && intitem->position == 0x7FFFF && intitem->status_bits == 0x03 && intitem->crc == 0xFF)
-        {
-            //TODO: valegagge in case of SPI disconnect what we have? do we read all ff?
-            return hal_res_NOK_generic;
-        }
-        
-
-        diagn->info.aksim2_status |= (intitem->status_bits)<< 1;
+        diagn->info.aksim2_status |= (intitem->status_bits) << 1;
+        //diagn->info.aksim2_status = 0x4;
 
         *pos = intitem->position;
     }

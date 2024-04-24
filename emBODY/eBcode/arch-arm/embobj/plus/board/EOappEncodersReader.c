@@ -73,6 +73,10 @@
 // --------------------------------------------------------------------------------------------------------------------
 // - #define with internal scope
 // --------------------------------------------------------------------------------------------------------------------
+int counter_0 = 0;
+int counter_1 = 0;
+extern int pippo;
+int error_output=-1;
 
 #define CHECK_ENC_IS_ON_SPI(type)                       ((eomc_enc_aea3 == (type)) || (eomc_enc_aea == (type)) || (eomc_enc_aksim2 == (type)) || (eomc_enc_amo == (type)) || (eomc_enc_spichainof2 == (type)) || (eomc_enc_spichainof3 == (type)))
 #define CHECK_ENC_IS_ON_STREAMED_SPI_WITHOTHERS(type)   ((eomc_enc_aea3 == (type)) || (eomc_enc_aea == (type)) || (eomc_enc_aksim2 == (type)) || (eomc_enc_amo == (type)))
@@ -231,8 +235,7 @@ static EOappEncReader s_eo_theappencreader =
 
 //TAG: _byModeling_complete
 static RT_MODEL_encoder_reader_aksim_T encoder_reader_aksim2_comple_M_;
-static RT_MODEL_encoder_reader_aksim_T *const encoder_reader_aksim2_comp_MPtr = &encoder_reader_aksim2_comple_M_;    /* Real-time model */
-static B_encoder_reader_aksim2_compl_T encoder_reader_aksim2_complet_B;/* Observable signals */
+static RT_MODEL_encoder_reader_aksim_T *const encoder_reader_aksim2_comple_MPtr = &encoder_reader_aksim2_comple_M_;    /* Real-time model */
 static ExtU_encoder_reader_aksim2_co_T encoder_reader_aksim2_complet_U;/* External inputs */
 static ExtY_encoder_reader_aksim2_co_T encoder_reader_aksim2_complet_Y;/* External outputs */
 
@@ -279,7 +282,7 @@ extern EOappEncReader* eo_appEncReader_Initialise(void)
     
 //    encoder_rescale2icubDeg_initialize(encoder_rescale2icubDeg_MPtr, &encoder_rescale2icubDeg_U, &encoder_rescale2icubDeg_Y); //TAG: _byModeling
     
-    encoder_reader_aksim2_complete_model_initialize(encoder_reader_aksim2_comp_MPtr, &encoder_reader_aksim2_complet_U, &encoder_reader_aksim2_complet_Y); //TAG: _byModeling_complete
+    encoder_reader_aksim2_complete_model_initialize(encoder_reader_aksim2_comple_MPtr, &encoder_reader_aksim2_complet_U, &encoder_reader_aksim2_complet_Y); //TAG: _byModeling_complete
     
     return(&s_eo_theappencreader);
 }
@@ -324,7 +327,7 @@ extern eOresult_t eo_appEncReader_Deactivate(EOappEncReader *p)
     
 //    encoder_rescale2icubDeg_terminate(encoder_rescale2icubDeg_MPtr); //TAG: _byModeling
     
-    encoder_reader_aksim2_complete_model_terminate(encoder_reader_aksim2_comp_MPtr); //TAG: _byModeling_complete
+    encoder_reader_aksim2_complete_model_terminate(encoder_reader_aksim2_comple_MPtr); //TAG: _byModeling_complete
     return(eores_OK);
 }
 
@@ -714,6 +717,51 @@ extern eOresult_t eo_appEncReader_GetValue(EOappEncReader *p, uint8_t jomo, eOen
                 
                 hal_result_t hal_out = hal_spiencoder_get_value2((hal_spiencoder_t)prop.descriptor->port, &position, &diagn);
                 prop.valueinfo->value[0] =  s_eo_appEncReader_aksim2Validation_byModelingComplete(position, jomo, (eOmc_position_t)prop.descriptor->pos, hal_out, &diagn, &prop.valueinfo->errortype);
+                
+                if(jomo==0)
+                {
+                    if(error_output != 0 && ((counter_0 % 100) == 0))
+                    {
+                        //debug code
+                        static eOerrmanDescriptor_t descriptor = {0};
+                        char message[150];
+                        snprintf(message, sizeof(message), "Hal res:%d, Diag:%u, p1:%d, err_out:%d", hal_out, diagn.info.aksim2_status, pippo, error_output);
+                
+                        descriptor.code             = eoerror_code_get(eoerror_category_Debug, eoerror_value_DEB_tag01);
+                        descriptor.sourcedevice     = eo_errman_sourcedevice_localboard;
+                        descriptor.sourceaddress    = 0;
+                        descriptor.par16            = jomo;
+                        descriptor.par64            = 0;
+                        eo_errman_Error(eo_errman_GetHandle(), eo_errortype_debug, message, NULL, &descriptor);
+                        //ends here
+                
+                        counter_0 = 0;
+                    }
+                    ++counter_0;
+                }
+                if(jomo==1)
+                {
+                    if(error_output != 0 && ((counter_1 % 100) == 0))
+                    {
+                        //debug code
+                        static eOerrmanDescriptor_t descriptor = {0};
+                        char message[150];
+                        snprintf(message, sizeof(message), "Hal res:%d, Diag:%u, p1:%d, err_out:%d", hal_out, diagn.info.aksim2_status, pippo, error_output);
+                
+                        descriptor.code             = eoerror_code_get(eoerror_category_Debug, eoerror_value_DEB_tag01);
+                        descriptor.sourcedevice     = eo_errman_sourcedevice_localboard;
+                        descriptor.sourceaddress    = 0;
+                        descriptor.par16            = jomo;
+                        descriptor.par64            = 0;
+                        eo_errman_Error(eo_errman_GetHandle(), eo_errortype_debug, message, NULL, &descriptor);
+                        //ends here
+                
+                        counter_1 = 0;
+                    }
+                    ++counter_1;
+                }
+                
+                
                 
             } break;
             
@@ -1796,22 +1844,23 @@ static uint32_t s_eo_appEncReader_aksim2Validation_byModelingComplete(uint32_t v
 
     // transformation of error types
     encoder_reader_aksim2_complet_U.hal_result = (int8_t)hal_out;
-    encoder_reader_aksim2_complet_U.diagnostic = (aksim2_diagn->info.aksim2_status & (0x07));
+    encoder_reader_aksim2_complet_U.diagnostic = aksim2_diagn->info.aksim2_status;
     encoder_reader_aksim2_complet_U.resolution = divider;
     encoder_reader_aksim2_complet_U.raw_value = val_raw;
     encoder_reader_aksim2_complet_U.is_in_iCubDeg = 1;
     
     
     
-    encoder_reader_aksim2_complete_model_step(encoder_reader_aksim2_comp_MPtr, &encoder_reader_aksim2_complet_U, &encoder_reader_aksim2_complet_Y);
+    encoder_reader_aksim2_complete_model_step(encoder_reader_aksim2_comple_MPtr, &encoder_reader_aksim2_complet_U, &encoder_reader_aksim2_complet_Y);
     
     // preperare data for diagnostics
     eOerrmanDescriptor_t errdes = {0};
     errdes.sourcedevice         = eo_errman_sourcedevice_localboard;
     errdes.sourceaddress        = 0;
-    errdes.par16                = 0;
+    errdes.par16                = jomo;
     errdes.par64                = (uint64_t) (aksim2_diagn->info.aksim2_status) << 32;
 
+    error_output = encoder_reader_aksim2_complet_Y.error_type;
     
     if(encoder_reader_aksim2_complet_Y.error_type == encoder_error_hal)
     {

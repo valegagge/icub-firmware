@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'encoder_reader_aksim2_complete_model'.
  *
- * Model version                  : 2.77
+ * Model version                  : 2.81
  * Simulink Coder version         : 24.1 (R2024a) 19-Nov-2023
- * C/C++ source code generated on : Tue Apr 23 16:40:35 2024
+ * C/C++ source code generated on : Wed Apr 24 17:23:07 2024
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex-M
@@ -21,7 +21,8 @@
 
 /* Invariant block signals (default storage) */
 const ConstB_encoder_reader_aksim2__T encoder_reader_aksim2_co_ConstB = {
-  0                                    /* '<S1>/Data Type Conversion3' */
+  0,                                   /* '<S1>/Data Type Conversion3' */
+  1                                 /* '<S4>/convert_from_aksim_error_to_int' */
 };
 
 /*

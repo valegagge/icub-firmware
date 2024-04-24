@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'encoder_reader_aksim2_complete_model'.
  *
- * Model version                  : 2.77
+ * Model version                  : 2.81
  * Simulink Coder version         : 24.1 (R2024a) 19-Nov-2023
- * C/C++ source code generated on : Tue Apr 23 16:40:35 2024
+ * C/C++ source code generated on : Wed Apr 24 17:23:07 2024
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex-M
@@ -22,18 +22,16 @@
 #include "encoder_reader_aksim2_complete_model_types.h"
 #include <string.h>
 
+int pippo = 66;
+
 /* Model step function */
 void encoder_reader_aksim2_complete_model_step(RT_MODEL_encoder_reader_aksim_T *
   const encoder_reader_aksim2_comple_M, ExtU_encoder_reader_aksim2_co_T
   *encoder_reader_aksim2_complet_U, ExtY_encoder_reader_aksim2_co_T
   *encoder_reader_aksim2_complet_Y)
 {
-  B_encoder_reader_aksim2_compl_T *encoder_reader_aksim2_complet_B =
-    encoder_reader_aksim2_comple_M->blockIO;
   int32_T tmp;
   int32_T tmp_0;
-  int8_T rtb_convert_from_aksim_diagnost;
-  int8_T s8_iter;
 
   /* If: '<S1>/If1' incorporates:
    *  DataTypeConversion: '<S1>/Data Type Conversion'
@@ -42,92 +40,77 @@ void encoder_reader_aksim2_complete_model_step(RT_MODEL_encoder_reader_aksim_T *
     /* Outputs for IfAction SubSystem: '<S1>/If hal ok Action Subsystem1' incorporates:
      *  ActionPort: '<S4>/Action Port'
      */
-    /* DataTypeConversion: '<S4>/convert_from_aksim_diagnostic_to_int' */
-    rtb_convert_from_aksim_diagnost =
-      encoder_reader_aksim2_complet_U->diagnostic;
-
-    /* Outputs for Iterator SubSystem: '<S4>/For Iterator Subsystem' incorporates:
-     *  ForIterator: '<S8>/For Iterator'
+    /* If: '<S4>/If' incorporates:
+     *  S-Function (sfix_bitop): '<S4>/Bitwise AND'
      */
-    for (s8_iter = 0; s8_iter < 3; s8_iter++) {
-      /* If: '<S8>/If' incorporates:
-       *  ArithShift: '<S8>/Shift Arithmetic'
-       *  Constant: '<S8>/Constant'
-       *  S-Function (sfix_bitop): '<S8>/Bitwise NOR'
-       */
-      if ((1 << s8_iter & rtb_convert_from_aksim_diagnost) ==
-          rtb_convert_from_aksim_diagnost) {
-        /* Outputs for IfAction SubSystem: '<S8>/If Action Subsystem1' incorporates:
-         *  ActionPort: '<S11>/Action Port'
-         */
-        /* SignalConversion generated from: '<S11>/Input1' */
-        encoder_reader_aksim2_complet_B->Input1 =
-          rtb_convert_from_aksim_diagnost;
-
-        /* End of Outputs for SubSystem: '<S8>/If Action Subsystem1' */
-      }
-
-      /* End of If: '<S8>/If' */
-    }
-
-    /* End of Outputs for SubSystem: '<S4>/For Iterator Subsystem' */
-
-    /* SwitchCase: '<S4>/Switch Case aksim error' */
-    switch (encoder_reader_aksim2_complet_B->Input1) {
-     case 4:
-      /* Outputs for IfAction SubSystem: '<S4>/Close_to_limit_error_sw_case Action Subsystem' incorporates:
-       *  ActionPort: '<S7>/Action Port'
-       */
-      /* Merge: '<S1>/merge_for_error_type' incorporates:
-       *  Constant: '<S7>/const_close_to_limit'
-       *  SignalConversion generated from: '<S7>/Output'
-       */
-      encoder_reader_aksim2_complet_Y->error_type = encoder_error_close_to_limit;
-
-      /* End of Outputs for SubSystem: '<S4>/Close_to_limit_error_sw_case Action Subsystem' */
-      break;
-
-     case 2:
-      /* Outputs for IfAction SubSystem: '<S4>/Invalid_data_error_sw_case Action Subsystem' incorporates:
-       *  ActionPort: '<S9>/Action Port'
-       */
-      /* Merge: '<S1>/merge_for_error_type' incorporates:
-       *  Constant: '<S9>/const_invalid_data_error'
-       *  SignalConversion generated from: '<S9>/Out1'
-       */
-      encoder_reader_aksim2_complet_Y->error_type = encoder_error_invalid_data;
-
-      /* End of Outputs for SubSystem: '<S4>/Invalid_data_error_sw_case Action Subsystem' */
-      break;
-
-     case 1:
-      /* Outputs for IfAction SubSystem: '<S4>/CRC_error_sw_case Action Subsystem' incorporates:
+    if ((encoder_reader_aksim2_complet_U->diagnostic & 1) ==
+        encoder_reader_aksim2_co_ConstB.convert_from_aksim_error_to) {
+      /* Outputs for IfAction SubSystem: '<S4>/CRC_error _sw_if Action Subsystem' incorporates:
        *  ActionPort: '<S6>/Action Port'
        */
       /* Merge: '<S1>/merge_for_error_type' incorporates:
-       *  Constant: '<S6>/const_crc_error'
+       *  Constant: '<S6>/const_encoder_error_crc'
        *  SignalConversion generated from: '<S6>/Out1'
        */
       encoder_reader_aksim2_complet_Y->error_type = encoder_error_crc;
 
-      /* End of Outputs for SubSystem: '<S4>/CRC_error_sw_case Action Subsystem' */
-      break;
-
-     default:
-      /* Outputs for IfAction SubSystem: '<S4>/No_error _sw_case Action Subsystem' incorporates:
-       *  ActionPort: '<S10>/Action Port'
+      /* End of Outputs for SubSystem: '<S4>/CRC_error _sw_if Action Subsystem' */
+    } else {
+      /* Outputs for IfAction SubSystem: '<S4>/Close_Inv_None_error _sw_if Action Subsystem' incorporates:
+       *  ActionPort: '<S7>/Action Port'
        */
-      /* Merge: '<S1>/merge_for_error_type' incorporates:
-       *  Constant: '<S10>/akism_error_none'
-       *  SignalConversion generated from: '<S10>/Out1'
+      /* SwitchCase: '<S7>/Switch Case aksim error' incorporates:
+       *  ArithShift: '<S7>/Shift Arithmetic'
+       *  Constant: '<S7>/Constant'
        */
-      encoder_reader_aksim2_complet_Y->error_type = encoder_error_none;
+      switch (encoder_reader_aksim2_complet_U->diagnostic >> 1) {
+       case 0:
+       case 1:
+        /* Outputs for IfAction SubSystem: '<S7>/Invalid_data_error_sw_case Action Subsystem' incorporates:
+         *  ActionPort: '<S9>/Action Port'
+         */
+        /* Merge: '<S1>/merge_for_error_type' incorporates:
+         *  Constant: '<S9>/const_invalid_data_error'
+         *  SignalConversion generated from: '<S9>/Out1'
+         */
+        encoder_reader_aksim2_complet_Y->error_type = encoder_error_invalid_data;
 
-      /* End of Outputs for SubSystem: '<S4>/No_error _sw_case Action Subsystem' */
-      break;
+        /* End of Outputs for SubSystem: '<S7>/Invalid_data_error_sw_case Action Subsystem' */
+        break;
+
+       case 2:
+        /* Outputs for IfAction SubSystem: '<S7>/Close_to_limit_error_sw_case Action Subsystem' incorporates:
+         *  ActionPort: '<S8>/Action Port'
+         */
+        /* Merge: '<S1>/merge_for_error_type' incorporates:
+         *  Constant: '<S8>/const_close_to_limit'
+         *  SignalConversion generated from: '<S8>/Output'
+         */
+        encoder_reader_aksim2_complet_Y->error_type =
+          encoder_error_close_to_limit;
+
+        /* End of Outputs for SubSystem: '<S7>/Close_to_limit_error_sw_case Action Subsystem' */
+        break;
+
+       default:
+        /* Outputs for IfAction SubSystem: '<S7>/No_error _sw_case Action Subsystem' incorporates:
+         *  ActionPort: '<S10>/Action Port'
+         */
+        /* Merge: '<S1>/merge_for_error_type' incorporates:
+         *  Constant: '<S10>/akism_error_none'
+         *  SignalConversion generated from: '<S10>/Out1'
+         */
+        encoder_reader_aksim2_complet_Y->error_type = encoder_error_none;
+
+        /* End of Outputs for SubSystem: '<S7>/No_error _sw_case Action Subsystem' */
+        break;
+      }
+
+      /* End of SwitchCase: '<S7>/Switch Case aksim error' */
+      /* End of Outputs for SubSystem: '<S4>/Close_Inv_None_error _sw_if Action Subsystem' */
     }
 
-    /* End of SwitchCase: '<S4>/Switch Case aksim error' */
+    /* End of If: '<S4>/If' */
     /* End of Outputs for SubSystem: '<S1>/If hal ok Action Subsystem1' */
   } else {
     /* Outputs for IfAction SubSystem: '<S1>/halError else Action Subsystem' incorporates:
@@ -141,7 +124,7 @@ void encoder_reader_aksim2_complete_model_step(RT_MODEL_encoder_reader_aksim_T *
 
     /* End of Outputs for SubSystem: '<S1>/halError else Action Subsystem' */
   }
-
+  pippo = encoder_reader_aksim2_complet_Y->error_type;
   /* End of If: '<S1>/If1' */
 
   /* If: '<S1>/If data valid' */
@@ -196,6 +179,7 @@ void encoder_reader_aksim2_complete_model_step(RT_MODEL_encoder_reader_aksim_T *
   }
 
   /* End of If: '<S1>/If data valid' */
+  UNUSED_PARAMETER(encoder_reader_aksim2_comple_M);
 }
 
 /* Model initialize function */
@@ -204,22 +188,20 @@ void encoder_reader_aksim2_complete_model_initialize
    ExtU_encoder_reader_aksim2_co_T *encoder_reader_aksim2_complet_U,
    ExtY_encoder_reader_aksim2_co_T *encoder_reader_aksim2_complet_Y)
 {
-  B_encoder_reader_aksim2_compl_T *encoder_reader_aksim2_complet_B =
-    encoder_reader_aksim2_comple_M->blockIO;
-
   /* Registration code */
 
-  /* block I/O */
-  (void) memset(((void *) encoder_reader_aksim2_complet_B), 0,
-                sizeof(B_encoder_reader_aksim2_compl_T));
+  /* initialize error status */
+  rtmSetErrorStatus(encoder_reader_aksim2_comple_M, (NULL));
 
   /* external inputs */
   (void)memset(encoder_reader_aksim2_complet_U, 0, sizeof
                (ExtU_encoder_reader_aksim2_co_T));
+  encoder_reader_aksim2_complet_U->diagnostic = aksim2_error_none;
 
   /* external outputs */
   (void)memset(encoder_reader_aksim2_complet_Y, 0, sizeof
                (ExtY_encoder_reader_aksim2_co_T));
+  UNUSED_PARAMETER(encoder_reader_aksim2_comple_M);
 }
 
 /* Model terminate function */

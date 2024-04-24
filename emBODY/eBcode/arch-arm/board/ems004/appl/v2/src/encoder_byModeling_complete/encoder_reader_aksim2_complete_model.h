@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'encoder_reader_aksim2_complete_model'.
  *
- * Model version                  : 2.77
+ * Model version                  : 2.81
  * Simulink Coder version         : 24.1 (R2024a) 19-Nov-2023
- * C/C++ source code generated on : Tue Apr 23 16:40:35 2024
+ * C/C++ source code generated on : Wed Apr 24 17:23:07 2024
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex-M
@@ -26,8 +26,8 @@
 #endif               /* encoder_reader_aksim2_complete_model_COMMON_INCLUDES_ */
 
 #include "encoder_reader_aksim2_complete_model_types.h"
-#include <string.h>
 #include "rt_defines.h"
+#include <stddef.h>
 
 /* Macros for accessing real-time model data structure */
 #ifndef rtmGetErrorStatus
@@ -38,14 +38,11 @@
 #define rtmSetErrorStatus(rtm, val)    ((rtm)->errorStatus = (val))
 #endif
 
-/* Block signals (default storage) */
-typedef struct {
-  int8_T Input1;                       /* '<S11>/Input1' */
-} B_encoder_reader_aksim2_compl_T;
-
 /* Invariant block signals (default storage) */
 typedef struct {
   const int8_T DataTypeConversion3;    /* '<S1>/Data Type Conversion3' */
+  const int8_T convert_from_aksim_error_to;
+                                    /* '<S4>/convert_from_aksim_error_to_int' */
 } ConstB_encoder_reader_aksim2__T;
 
 /* External inputs (root inport signals with default storage) */
@@ -67,7 +64,6 @@ typedef struct {
 /* Real-time Model Data Structure */
 struct tag_RTM_encoder_reader_aksim2_T {
   const char_T * volatile errorStatus;
-  B_encoder_reader_aksim2_compl_T *blockIO;
 };
 
 extern const ConstB_encoder_reader_aksim2__T encoder_reader_aksim2_co_ConstB;/* constant block i/o */
@@ -104,12 +100,11 @@ extern void encoder_reader_aksim2_complete_model_terminate
  * '<S3>'   : 'encoder_reader_aksim2_complete_model/Aksim2Model/If Action Subsystem no error'
  * '<S4>'   : 'encoder_reader_aksim2_complete_model/Aksim2Model/If hal ok Action Subsystem1'
  * '<S5>'   : 'encoder_reader_aksim2_complete_model/Aksim2Model/halError else Action Subsystem'
- * '<S6>'   : 'encoder_reader_aksim2_complete_model/Aksim2Model/If hal ok Action Subsystem1/CRC_error_sw_case Action Subsystem'
- * '<S7>'   : 'encoder_reader_aksim2_complete_model/Aksim2Model/If hal ok Action Subsystem1/Close_to_limit_error_sw_case Action Subsystem'
- * '<S8>'   : 'encoder_reader_aksim2_complete_model/Aksim2Model/If hal ok Action Subsystem1/For Iterator Subsystem'
- * '<S9>'   : 'encoder_reader_aksim2_complete_model/Aksim2Model/If hal ok Action Subsystem1/Invalid_data_error_sw_case Action Subsystem'
- * '<S10>'  : 'encoder_reader_aksim2_complete_model/Aksim2Model/If hal ok Action Subsystem1/No_error _sw_case Action Subsystem'
- * '<S11>'  : 'encoder_reader_aksim2_complete_model/Aksim2Model/If hal ok Action Subsystem1/For Iterator Subsystem/If Action Subsystem1'
+ * '<S6>'   : 'encoder_reader_aksim2_complete_model/Aksim2Model/If hal ok Action Subsystem1/CRC_error _sw_if Action Subsystem'
+ * '<S7>'   : 'encoder_reader_aksim2_complete_model/Aksim2Model/If hal ok Action Subsystem1/Close_Inv_None_error _sw_if Action Subsystem'
+ * '<S8>'   : 'encoder_reader_aksim2_complete_model/Aksim2Model/If hal ok Action Subsystem1/Close_Inv_None_error _sw_if Action Subsystem/Close_to_limit_error_sw_case Action Subsystem'
+ * '<S9>'   : 'encoder_reader_aksim2_complete_model/Aksim2Model/If hal ok Action Subsystem1/Close_Inv_None_error _sw_if Action Subsystem/Invalid_data_error_sw_case Action Subsystem'
+ * '<S10>'  : 'encoder_reader_aksim2_complete_model/Aksim2Model/If hal ok Action Subsystem1/Close_Inv_None_error _sw_if Action Subsystem/No_error _sw_case Action Subsystem'
  */
 #endif                             /* encoder_reader_aksim2_complete_model_h_ */
 
