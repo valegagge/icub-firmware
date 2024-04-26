@@ -805,6 +805,8 @@ extern hal_result_t hal_spiencoder_get_value2(hal_spiencoder_t id, hal_spiencode
         if (intitem->multiturncounter == 0xFFFF && intitem->position == 0x7FFFF && intitem->status_bits == 0x03 && intitem->crc == 0xFF)
         {
             //TODO: valegagge in case of SPI disconnect what we have? do we read all ff?
+//            diagn->type = hal_spiencoder_diagnostic_type_aksim2_not_connected; // do we keep the update of the type of the diagnostic in hal 
+//            diagn->info.value = 0;
             return hal_res_NOK_generic;
         }
         
@@ -822,6 +824,7 @@ extern hal_result_t hal_spiencoder_get_value2(hal_spiencoder_t id, hal_spiencode
         if(calculated_crc != intitem->crc)
         {
             // Error - invalid crc
+            //diagn->type = hal_spiencoder_diagnostic_type_aksim2_crc_error; // do we keep the update of the type of the diagnostic in hal 
             diagn->info.aksim2_status = 0x01;
             return(hal_res_OK); //here I return becaus ein case of crc error the other two status bit are not reliable
         }

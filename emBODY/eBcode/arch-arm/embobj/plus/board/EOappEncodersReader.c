@@ -143,7 +143,7 @@ static void s_eo_appEncReader_deconfigure_NONSPI_encoders(EOappEncReader *p);
 static void s_eo_appEncReader_configure_NONSPI_encoders(EOappEncReader *p);
 
 static uint32_t s_eo_appEncReader_rescale2icubdegrees(uint32_t val_raw, uint8_t jomo, eOmc_position_t pos);
-static uint32_t s_eo_appEncReader_rescale2icubdegrees_byModeling(uint32_t val_raw, uint8_t jomo, eOmc_position_t pos);
+//static uint32_t s_eo_appEncReader_rescale2icubdegrees_byModeling(uint32_t val_raw, uint8_t jomo, eOmc_position_t pos);
 static uint32_t s_eo_appEncReader_aksim2Validation_byModelingComplete(uint32_t val_raw, uint8_t jomo, eOmc_position_t pos, hal_result_t hal_out, hal_spiencoder_diagnostic_t* aksim2_diagn, eOencoderreader_errortype_t *error);
 static uint32_t s_eo_appEncReader_mais_rescale2icubdegrees(EOappEncReader* p, uint32_t val_raw, uint8_t jomo);
 static uint32_t s_eo_appEncReader_psc_rescale2icubdegrees(EOappEncReader* p, int16_t val_raw);
@@ -1454,7 +1454,7 @@ static eObool_t s_eo_appEncReader_IsValidValue_AKSIM2(uint8_t jomo, hal_spiencod
     eOerrmanDescriptor_t errdes = {0};
     errdes.sourcedevice         = eo_errman_sourcedevice_localboard;
     errdes.sourceaddress        = 0;
-    errdes.par16                = 0;
+    errdes.par16                = jomo;
     errdes.par64                = (uint64_t) (diag->info.aksim2_status) << 32;
 
     // In case of errors we send human readable diagnostics messages
