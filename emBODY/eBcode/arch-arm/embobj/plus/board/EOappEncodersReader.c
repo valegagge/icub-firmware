@@ -718,11 +718,12 @@ extern eOresult_t eo_appEncReader_GetValue(EOappEncReader *p, uint8_t jomo, eOen
                 hal_result_t hal_out = hal_spiencoder_get_value2((hal_spiencoder_t)prop.descriptor->port, &position, &diagn);
                 prop.valueinfo->value[0] =  s_eo_appEncReader_aksim2Validation_byModelingComplete(position, jomo, (eOmc_position_t)prop.descriptor->pos, hal_out, &diagn, &prop.valueinfo->errortype);
                 
+                // debug code
                 if(jomo==0)
                 {
-                    if(error_output != 0 && ((counter_0 % 100) == 0))
+                    if(error_output != 0 && ((counter_0 % 1000) == 0))
                     {
-                        //debug code
+                        
                         static eOerrmanDescriptor_t descriptor = {0};
                         char message[150];
                         snprintf(message, sizeof(message), "Hal res:%d, Diag:%u, p1:%d, err_out:%d", hal_out, diagn.info.aksim2_status, pippo, error_output);
@@ -733,17 +734,19 @@ extern eOresult_t eo_appEncReader_GetValue(EOappEncReader *p, uint8_t jomo, eOen
                         descriptor.par16            = jomo;
                         descriptor.par64            = 0;
                         eo_errman_Error(eo_errman_GetHandle(), eo_errortype_debug, message, NULL, &descriptor);
-                        //ends here
                 
                         counter_0 = 0;
                     }
                     ++counter_0;
                 }
+                //ends here
+                
+                //debug code
                 if(jomo==1)
                 {
-                    if(error_output != 0 && ((counter_1 % 100) == 0))
+                    if(error_output != 0 && ((counter_1 % 1000) == 0))
                     {
-                        //debug code
+                        
                         static eOerrmanDescriptor_t descriptor = {0};
                         char message[150];
                         snprintf(message, sizeof(message), "Hal res:%d, Diag:%u, p1:%d, err_out:%d", hal_out, diagn.info.aksim2_status, pippo, error_output);
@@ -754,14 +757,12 @@ extern eOresult_t eo_appEncReader_GetValue(EOappEncReader *p, uint8_t jomo, eOen
                         descriptor.par16            = jomo;
                         descriptor.par64            = 0;
                         eo_errman_Error(eo_errman_GetHandle(), eo_errortype_debug, message, NULL, &descriptor);
-                        //ends here
                 
                         counter_1 = 0;
                     }
                     ++counter_1;
                 }
-                
-                
+                //ends here
                 
             } break;
             

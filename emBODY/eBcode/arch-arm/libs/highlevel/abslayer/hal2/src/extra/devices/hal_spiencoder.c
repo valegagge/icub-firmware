@@ -826,22 +826,8 @@ extern hal_result_t hal_spiencoder_get_value2(hal_spiencoder_t id, hal_spiencode
             return(hal_res_OK); //here I return becaus ein case of crc error the other two status bit are not reliable
         }
         
-        // check status bits
-//        if(0x1 == intitem->status_bits)
-//        {
-//            // Error - the position data is not valid
-//            diagn->type = hal_spiencoder_diagnostic_type_aksim2_invalid_data;
-//            diagn->info.aksim2_status |= 0x02;
-//        }    
-//        if(0x2 == intitem->status_bits)
-//        {
-//            // Warning - the position data is valid, but some operating conditions are close to limits
-//            diagn->type = hal_spiencoder_diagnostic_type_aksim2_close_to_limits;
-//            diagn->info.aksim2_status |= 0x04;
-//        }
-        
+        // attach status bits
         diagn->info.aksim2_status |= (intitem->status_bits) << 1;
-        //diagn->info.aksim2_status = 0x4;
 
         *pos = intitem->position;
     }
