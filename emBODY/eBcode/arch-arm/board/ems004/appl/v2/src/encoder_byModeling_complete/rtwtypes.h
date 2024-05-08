@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'encoder_reader_aksim2_complete_model'.
  *
- * Model version                  : 2.81
+ * Model version                  : 2.86
  * Simulink Coder version         : 24.1 (R2024a) 19-Nov-2023
- * C/C++ source code generated on : Wed Apr 24 17:23:07 2024
+ * C/C++ source code generated on : Wed May  8 15:20:38 2024
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex-M
