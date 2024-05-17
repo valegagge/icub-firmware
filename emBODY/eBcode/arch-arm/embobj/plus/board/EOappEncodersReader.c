@@ -50,7 +50,7 @@
 #include "EOtheErrorManager.h"
 #include "EOVtheSystem.h"
     
-#if defined(DEBUG_encoder_AKSIM)
+#if defined(EMBOT_APP_SCOPE_core)
 #include "embot_app_scope.h"
 #endif
 
@@ -101,7 +101,7 @@ typedef struct
 
 
 // SignalViewerImpl
-#if defined(DEBUG_encoder_AKSIM)
+#if defined(EMBOT_APP_SCOPE_core)
 void AKSIM2D() {}
 embot::app::scope::SignalEViewer *sev {nullptr};
 embot::app::scope::SignalEViewer::Config evc {AKSIM2D, embot::app::scope::SignalEViewer::Config::LABEL::one};  
@@ -227,7 +227,7 @@ extern EOappEncReader* eo_appEncReader_Initialise(void)
         return(&s_eo_theappencreader);
     }
     
-    #if defined(DEBUG_encoder_AKSIM)
+    #if defined(EMBOT_APP_SCOPE_core)
     initscope();
     #endif
     
@@ -676,7 +676,7 @@ extern eOresult_t eo_appEncReader_GetValue(EOappEncReader *p, uint8_t jomo, eOen
 
             case eomc_enc_aksim2:
             {
-                #if defined(DEBUG_encoder_AKSIM)
+                #if defined(EMBOT_APP_SCOPE_core)
                 sev->on();
                 #endif
                 
@@ -710,7 +710,7 @@ extern eOresult_t eo_appEncReader_GetValue(EOappEncReader *p, uint8_t jomo, eOen
                     errdes.code                 = eoerror_code_get(eoerror_category_HardWare, eoerror_value_HW_encoder_not_connected);
                     eo_errman_Error(eo_errman_GetHandle(), eo_errortype_error, NULL, NULL, &errdes);
                 }
-                #if defined(DEBUG_encoder_AKSIM)
+                #if defined(EMBOT_APP_SCOPE_core)
                 sev->off();
                 #endif
             } break;
