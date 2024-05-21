@@ -73,10 +73,10 @@
 // --------------------------------------------------------------------------------------------------------------------
 // - #define with internal scope
 // --------------------------------------------------------------------------------------------------------------------
-int counter_0 = 0;
-int counter_1 = 0;
-extern int pippo;
-int error_output=-1;
+//int counter_0 = 0;
+//int counter_1 = 0;
+//extern int pippo;
+//int error_output=-1;
 
 #define CHECK_ENC_IS_ON_SPI(type)                       ((eomc_enc_aea3 == (type)) || (eomc_enc_aea == (type)) || (eomc_enc_aksim2 == (type)) || (eomc_enc_amo == (type)) || (eomc_enc_spichainof2 == (type)) || (eomc_enc_spichainof3 == (type)))
 #define CHECK_ENC_IS_ON_STREAMED_SPI_WITHOTHERS(type)   ((eomc_enc_aea3 == (type)) || (eomc_enc_aea == (type)) || (eomc_enc_aksim2 == (type)) || (eomc_enc_amo == (type)))
@@ -108,14 +108,17 @@ typedef struct
 
 
 // SignalViewerImpl
-#if defined(EMBOT_APP_SCOPE_core)
-void AKSIM2D() {}
-embot::app::scope::SignalEViewer *sev {nullptr};
-embot::app::scope::SignalEViewer::Config evc {AKSIM2D, embot::app::scope::SignalEViewer::Config::LABEL::one};  
-
+#if defined(DEBUG_encoder_AKSIM)
+void AKSIM2D_hal() {}
+void AKSIM2D_model() {}
+embot::app::scope::SignalEViewer *sev1 {nullptr};
+embot::app::scope::SignalEViewer *sev2 {nullptr};
+embot::app::scope::SignalEViewer::Config evc1 {AKSIM2D_hal, embot::app::scope::SignalEViewer::Config::LABEL::one};  
+embot::app::scope::SignalEViewer::Config evc2 {AKSIM2D_model, embot::app::scope::SignalEViewer::Config::LABEL::two};  
 void initscope()
 {
-    sev = new embot::app::scope::SignalEViewer(evc);
+    sev1 = new embot::app::scope::SignalEViewer(evc1);
+    sev2 = new embot::app::scope::SignalEViewer(evc2);
 }
 #endif
 
@@ -250,7 +253,7 @@ extern EOappEncReader* eo_appEncReader_Initialise(void)
         return(&s_eo_theappencreader);
     }
     
-    #if defined(EMBOT_APP_SCOPE_core)
+    #if defined(DEBUG_encoder_AKSIM)
     initscope();
     #endif
     
@@ -709,15 +712,30 @@ extern eOresult_t eo_appEncReader_GetValue(EOappEncReader *p, uint8_t jomo, eOen
 
             case eomc_enc_aksim2:
             {
-                #if defined(EMBOT_APP_SCOPE_core)
-                sev->on();
-                #endif
-                
-                hal_spiencoder_position_t position = 0;
-                
-                hal_result_t hal_out = hal_spiencoder_get_value2((hal_spiencoder_t)prop.descriptor->port, &position, &diagn);
-                prop.valueinfo->value[0] =  s_eo_appEncReader_aksim2Validation_byModelingComplete(position, jomo, (eOmc_position_t)prop.descriptor->pos, hal_out, &diagn, &prop.valueinfo->errortype);
-                
+                for(int i=0; i<10; ++i)
+                {
+                    
+                    #if defined(DEBUG_encoder_AKSIM)
+                    sev1->on();
+                    #endif
+                    
+                    hal_spiencoder_position_t position = 0;
+                    
+                    hal_result_t hal_out = hal_spiencoder_get_value2((hal_spiencoder_t)prop.descriptor->port, &position, &diagn);
+                    
+                    #if defined(DEBUG_encoder_AKSIM)
+                    sev1->off();
+                    sev2->on();
+                    #endif
+                    
+                    prop.valueinfo->value[0] =  s_eo_appEncReader_aksim2Validation_byModelingComplete(position, jomo, (eOmc_position_t)prop.descriptor->pos, hal_out, &diagn, &prop.valueinfo->errortype);
+                    
+                    #if defined(DEBUG_encoder_AKSIM)
+                    sev2->off();
+                    #endif
+                    
+                }
+                /*
                 // debug code
                 if(jomo==0)
                 {
@@ -763,7 +781,7 @@ extern eOresult_t eo_appEncReader_GetValue(EOappEncReader *p, uint8_t jomo, eOen
                     ++counter_1;
                 }
                 //ends here
-                
+                */
             } break;
             
             
@@ -1794,7 +1812,7 @@ static uint32_t s_eo_appEncReader_rescale2icubdegrees(uint32_t val_raw, uint8_t 
 static uint32_t s_eo_appEncReader_aksim2Validation_byModelingComplete(uint32_t val_raw, uint8_t jomo, eOmc_position_t pos, hal_result_t hal_out, hal_spiencoder_diagnostic_t* aksim2_diagn, eOencoderreader_errortype_t *error)
 {
     
-// this is the correct code: we divide by the encoderconversionfactor ...
+    // this is the correct code: we divide by the encoderconversionfactor ...
     // formulas are:
     // in xml file there is GENERAL:Encoders = tidegconv = 182.044 = (64*1024/360) is the conversion from degrees to icubdeg and is expressed as [icubdeg/deg]
     // In joint->config.jntEncoderResolution and motor->config.rotorEncoderResolution there are the resolutions of joint and motor encoders,
@@ -1861,7 +1879,7 @@ static uint32_t s_eo_appEncReader_aksim2Validation_byModelingComplete(uint32_t v
     errdes.par16                = jomo;
     errdes.par64                = (uint64_t) (aksim2_diagn->info.aksim2_status) << 32;
 
-    error_output = encoder_reader_aksim2_complet_Y.error_type;
+    //error_output = encoder_reader_aksim2_complet_Y.error_type;
     
     if(encoder_reader_aksim2_complet_Y.error_type == encoder_error_hal)
     {

@@ -55,7 +55,7 @@ struct tag_RTM_encoder_rescale2icubD_T {
   const char_T * volatile errorStatus;
 };
 
-void pippo();
+//void pippo();
 
 /* Model entry point functions */
 extern void encoder_rescale2icubDeg_initialize(RT_MODEL_encoder_rescale2icub_T *

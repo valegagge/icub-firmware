@@ -102,11 +102,11 @@ void encoder_rescale2icubDeg_terminate(RT_MODEL_encoder_rescale2icub_T *const
   UNUSED_PARAMETER(encoder_rescale2icubDeg_M);
 }
 
-void pippo()
-{
-    static int count=0;
-    count ++;
-}
+//void pippo()
+//{
+//    static int count=0;
+//    count ++;
+//}
 /*
  * File trailer for generated code.
  *

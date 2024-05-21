@@ -22,7 +22,7 @@
 #include "encoder_reader_aksim2_complete_model_types.h"
 #include <string.h>
 
-int pippo = 66;
+//int pippo = 66;
 
 /* Model step function */
 void encoder_reader_aksim2_complete_model_step(RT_MODEL_encoder_reader_aksim_T *
@@ -124,7 +124,9 @@ void encoder_reader_aksim2_complete_model_step(RT_MODEL_encoder_reader_aksim_T *
 
     /* End of Outputs for SubSystem: '<S1>/halError else Action Subsystem' */
   }
-  pippo = encoder_reader_aksim2_complet_Y->error_type;
+  
+  //pippo = encoder_reader_aksim2_complet_Y->error_type;
+  
   /* End of If: '<S1>/If1' */
 
   /* If: '<S1>/If data valid' */
