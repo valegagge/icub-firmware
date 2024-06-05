@@ -86,8 +86,7 @@ void encoder_reader_aksim2_complete_model_step(RT_MODEL_encoder_reader_aksim_T *
          *  Constant: '<S8>/const_close_to_limit'
          *  SignalConversion generated from: '<S8>/Output'
          */
-        encoder_reader_aksim2_complet_Y->error_type =
-          encoder_error_close_to_limit;
+        encoder_reader_aksim2_complet_Y->error_type = encoder_error_close_to_limit;
 
         /* End of Outputs for SubSystem: '<S7>/Close_to_limit_error_sw_case Action Subsystem' */
         break;

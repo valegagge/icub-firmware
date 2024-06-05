@@ -109,11 +109,11 @@ typedef struct
 
 // SignalViewerImpl
 #if defined(DEBUG_encoder_AKSIM)
-void AKSIM2D_hal() {}
+void AKSIM2D_total() {}
 void AKSIM2D_model() {}
 embot::app::scope::SignalEViewer *sev1 {nullptr};
 embot::app::scope::SignalEViewer *sev2 {nullptr};
-embot::app::scope::SignalEViewer::Config evc1 {AKSIM2D_hal, embot::app::scope::SignalEViewer::Config::LABEL::one};  
+embot::app::scope::SignalEViewer::Config evc1 {AKSIM2D_total, embot::app::scope::SignalEViewer::Config::LABEL::one};  
 embot::app::scope::SignalEViewer::Config evc2 {AKSIM2D_model, embot::app::scope::SignalEViewer::Config::LABEL::two};  
 void initscope()
 {
@@ -224,6 +224,14 @@ static EOappEncReader s_eo_theappencreader =
         EO_INIT(.cnts)              { 0, 0},
         EO_INIT(.one)               { 0, 0, 0, 0, 0 },
         EO_INIT(.two)               { 0, 0, 0, 0, 0 }       
+    },
+    EO_INIT(.aksim2_diagnerror_counters )
+    {
+        EO_INIT(.encoder_error_crc_counter            ) {0, 0, 0, 0},
+        EO_INIT(.encoder_error_invalid_data_counter   ) {0, 0, 0, 0},
+        EO_INIT(.encoder_error_close_to_limit_counter ) {0, 0, 0, 0},
+        EO_INIT(.encoder_error_hal_counter            ) {0, 0, 0, 0},
+        EO_INIT(.encoder_error_total_timer_counter    ) {0, 0, 0, 0}
     }
 };
 
@@ -287,6 +295,7 @@ extern EOappEncReader* eo_appEncReader_Initialise(void)
     
     encoder_reader_aksim2_complete_model_initialize(encoder_reader_aksim2_comple_MPtr, &encoder_reader_aksim2_complet_U, &encoder_reader_aksim2_complet_Y); //TAG: _byModeling_complete
     
+        
     return(&s_eo_theappencreader);
 }
 
@@ -712,29 +721,24 @@ extern eOresult_t eo_appEncReader_GetValue(EOappEncReader *p, uint8_t jomo, eOen
 
             case eomc_enc_aksim2:
             {
-                for(int i=0; i<10; ++i)
-                {
-                    
-                    #if defined(DEBUG_encoder_AKSIM)
-                    sev1->on();
-                    #endif
-                    
-                    hal_spiencoder_position_t position = 0;
-                    
-                    hal_result_t hal_out = hal_spiencoder_get_value2((hal_spiencoder_t)prop.descriptor->port, &position, &diagn);
-                    
-                    #if defined(DEBUG_encoder_AKSIM)
-                    sev1->off();
-                    sev2->on();
-                    #endif
-                    
-                    prop.valueinfo->value[0] =  s_eo_appEncReader_aksim2Validation_byModelingComplete(position, jomo, (eOmc_position_t)prop.descriptor->pos, hal_out, &diagn, &prop.valueinfo->errortype);
-                    
-                    #if defined(DEBUG_encoder_AKSIM)
-                    sev2->off();
-                    #endif
-                    
-                }
+                #if defined(DEBUG_encoder_AKSIM)
+                sev1->on();
+                #endif
+       
+                hal_spiencoder_position_t position = 0;
+                
+                hal_result_t hal_out = hal_spiencoder_get_value2((hal_spiencoder_t)prop.descriptor->port, &position, &diagn);
+                
+                #if defined(DEBUG_encoder_AKSIM)
+                sev2->on();
+                #endif
+                
+                prop.valueinfo->value[0] =  s_eo_appEncReader_aksim2Validation_byModelingComplete(position, jomo, (eOmc_position_t)prop.descriptor->pos, hal_out, &diagn, &prop.valueinfo->errortype);
+                
+                #if defined(DEBUG_encoder_AKSIM)
+                sev2->off();
+                sev1->off();
+                #endif
                 /*
                 // debug code
                 if(jomo==0)
@@ -1812,6 +1816,8 @@ static uint32_t s_eo_appEncReader_rescale2icubdegrees(uint32_t val_raw, uint8_t 
 static uint32_t s_eo_appEncReader_aksim2Validation_byModelingComplete(uint32_t val_raw, uint8_t jomo, eOmc_position_t pos, hal_result_t hal_out, hal_spiencoder_diagnostic_t* aksim2_diagn, eOencoderreader_errortype_t *error)
 {
     
+    // Definition of a vector for counting how many error of each type we have to do not saturate the diagnostic
+    
     // this is the correct code: we divide by the encoderconversionfactor ...
     // formulas are:
     // in xml file there is GENERAL:Encoders = tidegconv = 182.044 = (64*1024/360) is the conversion from degrees to icubdeg and is expressed as [icubdeg/deg]
@@ -1869,7 +1875,7 @@ static uint32_t s_eo_appEncReader_aksim2Validation_byModelingComplete(uint32_t v
     encoder_reader_aksim2_complet_U.is_in_iCubDeg = 1;
     
     
-    
+    // step method. perfoming core calculation for generating outputs 
     encoder_reader_aksim2_complete_model_step(encoder_reader_aksim2_comple_MPtr, &encoder_reader_aksim2_complet_U, &encoder_reader_aksim2_complet_Y);
     
     // preperare data for diagnostics
@@ -1881,33 +1887,73 @@ static uint32_t s_eo_appEncReader_aksim2Validation_byModelingComplete(uint32_t v
 
     //error_output = encoder_reader_aksim2_complet_Y.error_type;
     
-    if(encoder_reader_aksim2_complet_Y.error_type == encoder_error_hal)
+    if(++s_eo_theappencreader.aksim2DiagnerrorCounters.encoder_error_total_timer_counter[jomo] > 10000)
     {
-         // we dont even have a valid reading from hal or the encoder is not properly connected to the board
-        //prop.valueinfo->errortype = encreader_err_AKSIM2_GENERIC ;
-        //errorparam = 0;
-       *error = encreader_err_NOTCONNECTED;
-        errdes.code                 = eoerror_code_get(eoerror_category_HardWare, eoerror_value_HW_encoder_not_connected);
-        eo_errman_Error(eo_errman_GetHandle(), eo_errortype_error, NULL, NULL, &errdes);
+        if(s_eo_theappencreader.aksim2DiagnerrorCounters.encoder_error_hal_counter[jomo] > 0)
+        {
+             // we dont even have a valid reading from hal or the encoder is not properly connected to the board
+            //prop.valueinfo->errortype = encreader_err_AKSIM2_GENERIC ;
+            //errorparam = 0;
+            *error = encreader_err_NOTCONNECTED;
+            errdes.code                 = eoerror_code_get(eoerror_category_HardWare, eoerror_value_HW_encoder_not_connected);
+            errdes.par64               |= s_eo_theappencreader.aksim2DiagnerrorCounters.encoder_error_hal_counter[jomo];
+            eo_errman_Error(eo_errman_GetHandle(), eo_errortype_error, NULL, NULL, &errdes);
+            
+            s_eo_theappencreader.aksim2DiagnerrorCounters.encoder_error_hal_counter[jomo] = 0;
+        }
+        if(s_eo_theappencreader.aksim2DiagnerrorCounters.encoder_error_invalid_data_counter[jomo] > 0)
+        {
+            *error = encreader_err_AKSIM2_INVALID_DATA;
+            errdes.code                 = eoerror_code_get(eoerror_category_HardWare, eoerror_value_HW_encoder_invalid_value);
+            errdes.par64               |= s_eo_theappencreader.aksim2DiagnerrorCounters.encoder_error_invalid_data_counter[jomo];
+            eo_errman_Error(eo_errman_GetHandle(), eo_errortype_error, NULL, NULL, &errdes);
+            
+            s_eo_theappencreader.aksim2DiagnerrorCounters.encoder_error_invalid_data_counter[jomo] = 0;
+        }
+        if(s_eo_theappencreader.aksim2DiagnerrorCounters.encoder_error_close_to_limit_counter[jomo] > 0)
+        {
+            *error = encreader_err_AKSIM2_CLOSE_TO_LIMITS;
+            errdes.code                 = eoerror_code_get(eoerror_category_HardWare, eoerror_value_HW_encoder_close_to_limits);
+            errdes.par64               |= s_eo_theappencreader.aksim2DiagnerrorCounters.encoder_error_close_to_limit_counter[jomo];
+            eo_errman_Error(eo_errman_GetHandle(), eo_errortype_error, NULL, NULL, &errdes);
+            
+            s_eo_theappencreader.aksim2DiagnerrorCounters.encoder_error_close_to_limit_counter[jomo] = 0;
+        }
+        if(s_eo_theappencreader.aksim2DiagnerrorCounters.encoder_error_crc_counter[jomo] > 0)
+        {
+            *error = encreader_err_AKSIM2_CRC_ERROR;
+            errdes.code                 = eoerror_code_get(eoerror_category_HardWare, eoerror_value_HW_encoder_crc);
+            errdes.par64               |= s_eo_theappencreader.aksim2DiagnerrorCounters.encoder_error_crc_counter[jomo];
+            eo_errman_Error(eo_errman_GetHandle(), eo_errortype_error, NULL, NULL, &errdes);
+            
+            s_eo_theappencreader.aksim2DiagnerrorCounters.encoder_error_crc_counter[jomo] = 0;
+        }
+        
+        s_eo_theappencreader.aksim2DiagnerrorCounters.encoder_error_total_timer_counter[jomo] = 0;
     }
-    else if(encoder_reader_aksim2_complet_Y.error_type == encoder_error_invalid_data)
+    else if(encoder_reader_aksim2_complet_Y.error_type != encoder_error_none)
     {
-        *error = encreader_err_AKSIM2_INVALID_DATA;
-        errdes.code                 = eoerror_code_get(eoerror_category_HardWare, eoerror_value_HW_encoder_invalid_value);
-        eo_errman_Error(eo_errman_GetHandle(), eo_errortype_error, NULL, NULL, &errdes);
+        if(encoder_reader_aksim2_complet_Y.error_type == encoder_error_hal)
+        {
+             // we dont even have a valid reading from hal or the encoder is not properly connected to the board
+            //prop.valueinfo->errortype = encreader_err_AKSIM2_GENERIC ;
+            //errorparam = 0;
+            ++s_eo_theappencreader.aksim2DiagnerrorCounters.encoder_error_hal_counter[jomo];
+        }
+        else if(encoder_reader_aksim2_complet_Y.error_type == encoder_error_invalid_data)
+        {
+            ++s_eo_theappencreader.aksim2DiagnerrorCounters.encoder_error_invalid_data_counter[jomo];
+        }
+        else if(encoder_reader_aksim2_complet_Y.error_type == encoder_error_close_to_limit)
+        {
+            ++s_eo_theappencreader.aksim2DiagnerrorCounters.encoder_error_close_to_limit_counter[jomo];
+        }
+        else if(encoder_reader_aksim2_complet_Y.error_type == encoder_error_crc)
+        {
+            ++s_eo_theappencreader.aksim2DiagnerrorCounters.encoder_error_crc_counter[jomo];
+        }
     }
-    else if(encoder_reader_aksim2_complet_Y.error_type == encoder_error_close_to_limit)
-    {
-        *error = encreader_err_AKSIM2_CLOSE_TO_LIMITS;
-        errdes.code                 = eoerror_code_get(eoerror_category_HardWare, eoerror_value_HW_encoder_close_to_limits);
-        eo_errman_Error(eo_errman_GetHandle(), eo_errortype_error, NULL, NULL, &errdes);
-    }
-    else if(encoder_reader_aksim2_complet_Y.error_type == encoder_error_crc)
-    {
-        *error = encreader_err_AKSIM2_CRC_ERROR;
-        errdes.code                 = eoerror_code_get(eoerror_category_HardWare, eoerror_value_HW_encoder_crc);
-        eo_errman_Error(eo_errman_GetHandle(), eo_errortype_error, NULL, NULL, &errdes);
-    }
+    
     
     //ret = ExtY_encoder_reader_aksim2_co_T.is_aksim2_position_valid;
     retval = encoder_reader_aksim2_complet_Y.position_out;
