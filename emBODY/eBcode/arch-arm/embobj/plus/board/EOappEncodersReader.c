@@ -225,7 +225,7 @@ static EOappEncReader s_eo_theappencreader =
         EO_INIT(.one)               { 0, 0, 0, 0, 0 },
         EO_INIT(.two)               { 0, 0, 0, 0, 0 }       
     },
-    EO_INIT(.aksim2_diagnerror_counters )
+    EO_INIT(.aksim2DiagnerrorCounters )
     {
         EO_INIT(.encoder_error_crc_counter            ) {0, 0, 0, 0},
         EO_INIT(.encoder_error_invalid_data_counter   ) {0, 0, 0, 0},
@@ -1935,9 +1935,6 @@ static uint32_t s_eo_appEncReader_aksim2Validation_byModelingComplete(uint32_t v
     {
         if(encoder_reader_aksim2_complet_Y.error_type == encoder_error_hal)
         {
-             // we dont even have a valid reading from hal or the encoder is not properly connected to the board
-            //prop.valueinfo->errortype = encreader_err_AKSIM2_GENERIC ;
-            //errorparam = 0;
             ++s_eo_theappencreader.aksim2DiagnerrorCounters.encoder_error_hal_counter[jomo];
         }
         else if(encoder_reader_aksim2_complet_Y.error_type == encoder_error_invalid_data)
