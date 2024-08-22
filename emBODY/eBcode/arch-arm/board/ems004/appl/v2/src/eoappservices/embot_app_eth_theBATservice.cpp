@@ -846,6 +846,11 @@ void embot::app::eth::theBATservice::Impl::can_battery_TX(eOprotIndex_t index, b
     sharedcan.command.value = &batterymode; 
     eOprotID32_t id32 = eoprot_ID_get(eoprot_endpoint_analogsensors, eoprot_entity_as_battery, index, eoprot_tag_none);
     eo_canserv_SendCommandToEntity(eo_canserv_GetHandle(), &sharedcan.command, id32);    
+    
+    uint8_t txrate = (true == on ) ? 100 : 0;
+    sharedcan.command.type  = ICUBCANPROTO_POL_AS_CMD__SET_CANDATARATE;
+    sharedcan.command.value = &txrate; 
+    eo_canserv_SendCommandToEntity(eo_canserv_GetHandle(), &sharedcan.command, id32);
 }
 
 void embot::app::eth::theBATservice::Impl::can_battery_TXstop() {
@@ -854,6 +859,22 @@ void embot::app::eth::theBATservice::Impl::can_battery_TXstop() {
    sharedcan.command.clas = eocanprot_msgclass_pollingAnalogSensor;    
    sharedcan.command.type  = ICUBCANPROTO_POL_AS_CMD__SET_TXMODE;
    sharedcan.command.value = &mode;
+
+   for(uint8_t protindex = 0; protindex<theBATnetvariables.size(); protindex++)
+   {
+       if(nullptr != theBATnetvariables[protindex])
+       {
+           // it means that we have the entity index activated
+           // we get the mode from the entity ram and we send the command
+           eOprotID32_t id32 = eoprot_ID_get(eoprot_endpoint_analogsensors, eoprot_entity_as_battery, protindex, eoprot_tag_none);
+           eo_canserv_SendCommandToEntity(eo_canserv_GetHandle(), &sharedcan.command, id32);
+       }
+   }
+   
+    // set tx rate 
+    uint8_t txrate = 0; 
+    sharedcan.command.type  = ICUBCANPROTO_POL_AS_CMD__SET_CANDATARATE;
+    sharedcan.command.value = &txrate; 
 
    for(uint8_t protindex = 0; protindex<theBATnetvariables.size(); protindex++)
    {
