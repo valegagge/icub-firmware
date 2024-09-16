@@ -113,6 +113,41 @@ extern eOresult_t eocanprotINperiodic_parser_PER_BS_MSG__ALLTHEOTHERS(eOcanframe
     return(eores_OK);   
 }
 
+extern eOresult_t eocanprotINperiodic_parser_PER_BS_MSG__ADVANCED_STATUS_BMS(eOcanframe_t *frame, eOcanport_t port)
+{
+    embot::app::eth::theBATservice::canFrameDescriptor cfd 
+    { 
+        port, 
+        frame, 
+        embot::app::eth::theBATservice::canFrameDescriptor::Type::adv_status_bms
+    };
+    embot::app::eth::theBATservice::getInstance().AcceptCANframe(cfd);
+    return(eores_OK);
+}
+
+extern eOresult_t eocanprotINperiodic_parser_PER_BS_MSG__SPECIAL_COMMAND_BMS(eOcanframe_t *frame, eOcanport_t port)
+{
+    embot::app::eth::theBATservice::canFrameDescriptor cfd 
+    { 
+        port, 
+        frame, 
+        embot::app::eth::theBATservice::canFrameDescriptor::Type::special_command
+    };
+    embot::app::eth::theBATservice::getInstance().AcceptCANframe(cfd);
+    return(eores_OK);
+}
+
+extern eOresult_t eocanprotINperiodic_former_PER_BS_MSG__SPECIAL_COMMAND_BMS(eOcanprot_descriptor_t *descriptor, eOcanframe_t *frame)
+{
+    frame->id           = EOCANPROT_CREATE_CANID_PERIODIC(eocanprot_msgclass_periodicBattery, descriptor->loc.addr, 0xF);
+    frame->id_type      = eocanframeID_std11bits;
+    frame->frame_type   = eocanframetype_data; 
+    frame->size         = 2;
+    frame->data[0]      = descriptor->cmd.type;
+    memcpy(&frame->data[1], descriptor->cmd.value, 1);
+    
+    return(eores_OK);                
+}
 
 // --------------------------------------------------------------------------------------------------------------------
 // - definition of extern hidden functions 

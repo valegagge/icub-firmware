@@ -361,6 +361,9 @@ extern eOresult_t eocanprotMCperiodic_former_PER_MC_MSG__EMSTO2FOC_DESIRED_CURRE
 extern eOresult_t eocanprotINperiodic_parser_PER_BS_MSG__INFO(eOcanframe_t *frame, eOcanport_t port);
 extern eOresult_t eocanprotINperiodic_parser_PER_BS_MSG__STATUS_BMS(eOcanframe_t *frame, eOcanport_t port);
 extern eOresult_t eocanprotINperiodic_parser_PER_BS_MSG__STATUS_BAT(eOcanframe_t *frame, eOcanport_t port);
+extern eOresult_t eocanprotINperiodic_parser_PER_BS_MSG__ADVANCED_STATUS_BMS(eOcanframe_t *frame, eOcanport_t port);
+extern eOresult_t eocanprotINperiodic_parser_PER_BS_MSG__SPECIAL_COMMAND_BMS(eOcanframe_t *frame, eOcanport_t port);
+extern eOresult_t eocanprotINperiodic_former_PER_BS_MSG__SPECIAL_COMMAND_BMS(eOcanprot_descriptor_t *descriptor, eOcanframe_t *frame);
 
 
 extern eOresult_t eocanprotINperiodic_parser_PER_BS_MSG__ALLTHEOTHERS(eOcanframe_t *frame, eOcanport_t port);

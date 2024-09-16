@@ -47,6 +47,8 @@ public:
       info,
       status_bms,
       status_bat,
+      adv_status_bms,
+      special_command,
       unspecified,
     };
     eOcanport_t port{eOcanport1};

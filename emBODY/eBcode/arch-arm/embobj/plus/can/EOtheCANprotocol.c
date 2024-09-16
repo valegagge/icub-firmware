@@ -86,6 +86,8 @@ static eObool_t s_eo_canprot_isit_exception(eOcanframe_t *frame, eOcanport_t por
 
 static eOresult_t s_eo_canprot_get_indices(eOcanframe_t *frame, eOcanprot_descriptor_t *des, uint8_t *index0, uint8_t *index1);
 
+
+static eObool_t s_eo_canprot_battery_special_messages(eObool_t parsemode, eOcanframe_t *frame, eOcanprot_descriptor_t *des);
 // --------------------------------------------------------------------------------------------------------------------
 // - definition (and initialisation) of static variables
 // --------------------------------------------------------------------------------------------------------------------
@@ -1227,11 +1229,11 @@ const eOcanprot_functions_t s_eo_canprot_functions_periodicBattery[] =
     },
     {   // 010      
         EO_INIT(.former) NULL,
-        EO_INIT(.parser) NULL
+        EO_INIT(.parser) eocanprotINperiodic_parser_PER_BS_MSG__ADVANCED_STATUS_BMS
     },
-    {   // 011      
-        EO_INIT(.former) NULL,
-        EO_INIT(.parser) NULL
+    {   // 011   ATTENTION: this entry is related to the message with type 0x6B   
+        EO_INIT(.former) eocanprotINperiodic_former_PER_BS_MSG__SPECIAL_COMMAND_BMS,
+        EO_INIT(.parser) eocanprotINperiodic_parser_PER_BS_MSG__SPECIAL_COMMAND_BMS
     }, 
     {   // 012      
         EO_INIT(.former) NULL,
@@ -1678,6 +1680,12 @@ static eOresult_t s_eo_canprot_get_indices(eOcanframe_t *frame, eOcanprot_descri
         case eocanprot_msgclass_periodicBattery:
         {
             *index0 = msgclass;
+            if(s_eo_canprot_battery_special_messages(parsemode, frame, des))
+            {
+                *index1 = 11;
+                return eores_OK;
+            }
+
             if(eobool_true == parsemode)
             {
                 msgtype = EOCANPROT_FRAME_PERIODIC_GET_TYPE(frame); 
@@ -1693,7 +1701,7 @@ static eOresult_t s_eo_canprot_get_indices(eOcanframe_t *frame, eOcanprot_descri
             if(*index1 >= s_eo_canprot_functions_periodicBattery_maxnumber)
             {   // extra check
                 res = eores_NOK_generic;
-            }             
+            }
         } break;
         
         default:
@@ -1705,6 +1713,25 @@ static eOresult_t s_eo_canprot_get_indices(eOcanframe_t *frame, eOcanprot_descri
     
     return(res);
 
+}
+
+static eObool_t s_eo_canprot_battery_special_messages(eObool_t parsemode, eOcanframe_t *frame, eOcanprot_descriptor_t *des)
+{
+    uint8_t msgtype = 0;
+    if(eobool_true == parsemode)
+    {
+        if((EOCANPROT_FRAME_PERIODIC_GET_TYPE(frame) == 0xF) && (frame->data[0] == 0x6B))
+        {
+            return eobool_true;
+        }
+    }
+    else
+    {
+        if(des->cmd.type  == 0x6B)
+            return eobool_true;
+    }
+    
+    return eobool_false;
 }
 
 

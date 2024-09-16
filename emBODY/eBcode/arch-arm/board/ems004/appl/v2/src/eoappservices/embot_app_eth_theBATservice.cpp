@@ -131,6 +131,7 @@ private:
   void can_battery_Config(eOprotIndex_t index, uint8_t ratemillisec);
   void can_battery_TX(eOprotIndex_t index, bool on);
   void can_battery_TXstop();
+  void startGettingLogsOfLastRun();
 
   // service methods used to handle the verifying state
   // some must stay static because are used as callbacks
@@ -379,6 +380,8 @@ eOresult_t embot::app::eth::theBATservice::Impl::Activate(const eOmn_serv_config
                          eoprot_entity_as_battery, sharedcan.entitydescriptor);
 
   // ok, service is active now
+  startGettingLogsOfLastRun();
+  
 
   service.active = eobool_true;
   service.state = eomn_serv_state_activated;
@@ -629,6 +632,40 @@ eOresult_t embot::app::eth::theBATservice::Impl::AcceptCANframe(const canFrameDe
         bat->status.timedvalue.age = embot::core::now();
     } break;
     
+    case canFrameDescriptor::Type::adv_status_bms: 
+    {
+        /*
+        * Regarding the advanced status info coming from the BMS carries out the following information
+        * 
+        * Byte0: battery pack state (TODO: adda more info)
+        * Byte1: contacts state (TODO: adda more info)
+        * Byte2: Equalization Mask (ByteL)
+        * Byte3: Equalization Mask (ByteH)
+        * Byte4: Vout (mV) (ByteL)
+        * Byte5: Vout (mV) (ByteH)
+        * Byte6: Warning and errors mask (ByteL) (TODO: adda more info)
+        * Byte7: Warning and errors mask (ByteH) (TODO: adda more info)
+        * 
+        **/
+        
+        bat->status.timedvalue.advstatus = static_cast<uint16_t>((cfd.frame->data[7] << 8 ) | cfd.frame->data[6]);
+        bat->status.timedvalue.age = embot::core::now();
+    } break;
+    
+    case canFrameDescriptor::Type::special_command: 
+    {
+      diagnostics.errorDescriptor.sourcedevice = eo_errman_sourcedevice_localboard;
+      diagnostics.errorDescriptor.sourceaddress = 0;
+      diagnostics.errorDescriptor.par16 = 0;
+      diagnostics.errorDescriptor.par64 = 0;
+      EOaction_strg astrg = {0};
+      EOaction *act = (EOaction *)&astrg;
+      eo_action_SetCallback(act, s_send_periodic_error_report, this, eov_callbackman_GetTask(eov_callbackman_GetHandle()));
+
+      diagnostics.errorType = eo_errortype_debug;
+      diagnostics.errorDescriptor.code = eoerror_code_get(eoerror_category_Config, eoerror_value_CFG_bat_ok);
+      eo_errman_Error(eo_errman_GetHandle(), diagnostics.errorType, NULL, s_eobj_ownname, &diagnostics.errorDescriptor);
+    } break;
     case canFrameDescriptor::Type::unspecified:
     {
         //unspecified type do nothing - for now return unsupported error - 
@@ -846,6 +883,25 @@ void embot::app::eth::theBATservice::Impl::can_battery_TX(eOprotIndex_t index, b
     sharedcan.command.value = &batterymode; 
     eOprotID32_t id32 = eoprot_ID_get(eoprot_endpoint_analogsensors, eoprot_entity_as_battery, index, eoprot_tag_none);
     eo_canserv_SendCommandToEntity(eo_canserv_GetHandle(), &sharedcan.command, id32);    
+}
+
+void embot::app::eth::theBATservice::Impl::startGettingLogsOfLastRun() 
+{
+   // get first log
+   sharedcan.command.clas = eocanprot_msgclass_periodicBattery;    
+   sharedcan.command.type  = 0x6B;
+   sharedcan.command.value = 0; //num of the first record the most recent
+
+   for(uint8_t protindex = 0; protindex<theBATnetvariables.size(); protindex++)
+   {
+       if(nullptr != theBATnetvariables[protindex])
+       {
+           // it means that we have the entity index activated
+           // we get the mode from the entity ram and we send the command
+               eOprotID32_t id32 = eoprot_ID_get(eoprot_endpoint_analogsensors, eoprot_entity_as_battery, protindex, eoprot_tag_none);
+               eo_canserv_SendCommandToEntity(eo_canserv_GetHandle(), &sharedcan.command, id32);
+       }
+   }
 }
 
 void embot::app::eth::theBATservice::Impl::can_battery_TXstop() {
