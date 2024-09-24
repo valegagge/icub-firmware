@@ -1720,14 +1720,14 @@ static eObool_t s_eo_canprot_battery_special_messages(eObool_t parsemode, eOcanf
     uint8_t msgtype = 0;
     if(eobool_true == parsemode)
     {
-        if((EOCANPROT_FRAME_PERIODIC_GET_TYPE(frame) == 0xF) && (frame->data[0] == 0x6B))
+        if((EOCANPROT_FRAME_PERIODIC_GET_TYPE(frame) == 0xF) && (frame->data[0] == 0x73))
         {
             return eobool_true;
         }
     }
     else
     {
-        if(des->cmd.type  == 0x6B)
+        if(des->cmd.type  == 0x73)
             return eobool_true;
     }
     

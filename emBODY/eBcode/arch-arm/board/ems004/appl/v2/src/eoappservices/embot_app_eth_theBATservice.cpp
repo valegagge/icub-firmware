@@ -96,6 +96,9 @@ struct embot::app::eth::theBATservice::Impl {
       s_eobj_ownname,
       eomn_serv_category_battery
   };
+  
+  // counter for the BMS Log register (only new version of BMS)
+  uint8_t log_counter = 0;
 
   embot::core::Time debugtimeft{0};
 
@@ -132,6 +135,7 @@ private:
   void can_battery_TX(eOprotIndex_t index, bool on);
   void can_battery_TXstop();
   void startGettingLogsOfLastRun();
+  void askLogRegestryEntry(uint8_t entry_num);
 
   // service methods used to handle the verifying state
   // some must stay static because are used as callbacks
@@ -654,17 +658,25 @@ eOresult_t embot::app::eth::theBATservice::Impl::AcceptCANframe(const canFrameDe
     
     case canFrameDescriptor::Type::special_command: 
     {
-      diagnostics.errorDescriptor.sourcedevice = eo_errman_sourcedevice_localboard;
-      diagnostics.errorDescriptor.sourceaddress = 0;
-      diagnostics.errorDescriptor.par16 = 0;
-      diagnostics.errorDescriptor.par64 = 0;
-      EOaction_strg astrg = {0};
-      EOaction *act = (EOaction *)&astrg;
-      eo_action_SetCallback(act, s_send_periodic_error_report, this, eov_callbackman_GetTask(eov_callbackman_GetHandle()));
+      uint16_t alarm_mask = static_cast<uint16_t>((static_cast<uint16_t>(cfd.frame->data[7]) << 8) |
+            static_cast<uint16_t>(cfd.frame->data[6]));
+      
+      bool isTheLastRun = (cfd.frame->data[1] & 0x80);
+      
+      if(isTheLastRun)
+      {
+          diagnostics.errorDescriptor.sourcedevice = eo_errman_sourcedevice_localboard;
+          diagnostics.errorDescriptor.sourceaddress = 0;
+          diagnostics.errorDescriptor.par16 = alarm_mask;
+          diagnostics.errorDescriptor.par64 = eo_common_canframe_data2u64(cfd.frame);
 
-      diagnostics.errorType = eo_errortype_debug;
-      diagnostics.errorDescriptor.code = eoerror_code_get(eoerror_category_Config, eoerror_value_CFG_bat_ok);
-      eo_errman_Error(eo_errman_GetHandle(), diagnostics.errorType, NULL, s_eobj_ownname, &diagnostics.errorDescriptor);
+          diagnostics.errorType = eo_errortype_debug;
+          diagnostics.errorDescriptor.code = eoerror_code_get(eoerror_category_Debug, eoerror_value_DEB_tag04);
+          eo_errman_Error(eo_errman_GetHandle(), diagnostics.errorType, "BAT  received log info", s_eobj_ownname, &diagnostics.errorDescriptor);
+          
+          log_counter++;
+          askLogRegestryEntry(log_counter); 
+      }
     } break;
     case canFrameDescriptor::Type::unspecified:
     {
@@ -885,12 +897,21 @@ void embot::app::eth::theBATservice::Impl::can_battery_TX(eOprotIndex_t index, b
     eo_canserv_SendCommandToEntity(eo_canserv_GetHandle(), &sharedcan.command, id32);    
 }
 
+
 void embot::app::eth::theBATservice::Impl::startGettingLogsOfLastRun() 
 {
    // get first log
+   log_counter = 0;
+   askLogRegestryEntry(log_counter);
+}
+
+
+void embot::app::eth::theBATservice::Impl::askLogRegestryEntry(uint8_t entry_num) 
+{
+   uint8_t value = entry_num;
    sharedcan.command.clas = eocanprot_msgclass_periodicBattery;    
-   sharedcan.command.type  = 0x6B;
-   sharedcan.command.value = 0; //num of the first record the most recent
+   sharedcan.command.type  = 0x73;
+   sharedcan.command.value = &value; //num of the first record the most recent
 
    for(uint8_t protindex = 0; protindex<theBATnetvariables.size(); protindex++)
    {
