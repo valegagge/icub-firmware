@@ -91,7 +91,7 @@ struct embot::app::eth::theBATservice::Impl {
   static constexpr CANmonitor::Config defaultcanmonitorconfig{
       {}, // the map is left empty
       1000 * embot::core::time1millisec, // this is the time interval used by the ems to touch the CAN boards that initialize this service. We MUST use 1000 ms since we are using the servicefor both BAT (that streams data at 100ms) and BMS (which instead streams at 1s)
-      CANmonitor::Report::ALL,
+      CANmonitor::Report::justLOSTjustFOUNDstillLOST,
       10 * embot::core::time1second,
       s_eobj_ownname,
       eomn_serv_category_battery
