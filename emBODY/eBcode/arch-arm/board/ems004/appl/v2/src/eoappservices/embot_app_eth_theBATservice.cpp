@@ -910,7 +910,7 @@ void embot::app::eth::theBATservice::Impl::askLogRegestryEntry(uint8_t entry_num
 {
    uint8_t value = entry_num;
    sharedcan.command.clas = eocanprot_msgclass_periodicBattery;    
-   sharedcan.command.type  = 0x73;
+   sharedcan.command.type  = getDiagnosticLogEntry;
    sharedcan.command.value = &value; //num of the first record the most recent
 
    for(uint8_t protindex = 0; protindex<theBATnetvariables.size(); protindex++)
