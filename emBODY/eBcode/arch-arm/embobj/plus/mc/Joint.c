@@ -867,13 +867,14 @@ CTRL_UNITS Joint_do_vel_control(Joint* o)
                 break;
             
             case eomc_controlmode_vel_direct:
+            case eomc_controlmode_velocity:
                 o->pos_err = ZERO;
                 o->vel_ref = pid->Kff * o->vel_ref;
                 break;
             
             case eomc_controlmode_mixed:
             case eomc_controlmode_position:
-            case eomc_controlmode_velocity:
+            //case eomc_controlmode_velocity: to remove the drift correction
                 if (o->vel_ref == ZERO)
                 {
                     if (o->pos_err > o->dead_zone)
