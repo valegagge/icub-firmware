@@ -194,12 +194,13 @@ void JointSet_do_odometry(JointSet* o) //
         {    
             j = o->encoders_of_set[js];
         
-            kf_input[j] = o->joint[j].pos_fbk_from_motors;
+            //kf_input[j] = o->joint[j].pos_fbk_from_motors;
         
             if (AbsEncoder_is_fake(o->absEncoder+j))
             {
                 o->joint[j].pos_fbk = o->joint[j].pos_fbk_from_motors;
                 o->joint[j].vel_fbk = o->joint[j].vel_fbk_from_motors;
+                kf_input[j] = o->joint[j].pos_fbk_from_motors;
             }
             else
             {
@@ -208,12 +209,15 @@ void JointSet_do_odometry(JointSet* o) //
                 if (o->USE_SPEED_FBK_FROM_MOTORS)
                 {
                     o->joint[j].vel_fbk = o->joint[j].vel_fbk_from_motors;
+                    kf_input[j] = o->joint[j].pos_fbk_from_motors;
                 }
                 else
                 {
                     o->joint[j].vel_fbk = AbsEncoder_velocity(o->absEncoder+j);
+                    kf_input[j] = o->joint[j].pos_fbk;
                 }
             }
+            
         }
     }
     else // encoder coupling
@@ -277,7 +281,7 @@ void JointSet_do_odometry(JointSet* o) //
         }
     }
     
-    if (o->joint[j].kalman_filter_enabled && o->USE_SPEED_FBK_FROM_MOTORS)
+    if (o->joint[j].kalman_filter_enabled /*&& o->USE_SPEED_FBK_FROM_MOTORS*/)
     {
         float32_t kf_output[3] = {0, 0, 0};
         
