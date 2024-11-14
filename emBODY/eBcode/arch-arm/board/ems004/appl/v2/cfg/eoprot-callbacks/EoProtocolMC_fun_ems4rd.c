@@ -596,8 +596,8 @@ extern void eoprot_fun_UPDT_mc_joint_cmmnds_setpoint(const EOnv* nv, const eOrop
             
             case eomc_setpoint_velocity:
             {
-                MController_set_joint_vel_ref(jxx, setpoint->to.velocity.value, setpoint->to.velocity.withacceleration);
-                //MController_set_joint_vel_raw(jxx, setpoint->to.velocity.value);
+                //MController_set_joint_vel_ref(jxx, setpoint->to.velocity.value, setpoint->to.velocity.withacceleration);
+                MController_set_joint_vel_raw(jxx, setpoint->to.velocity.value);
             } break;
 
             case eomc_setpoint_torque:
