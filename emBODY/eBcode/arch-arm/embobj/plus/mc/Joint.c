@@ -288,7 +288,10 @@ void Joint_update_status_reference(Joint* o)
         default:
             ;
     }
-
+    
+    // Debug for temporary adding the raw planned target position to the motor encoder value which
+    o->eo_joint_ptr->status.addinfo.multienc[1] = (int32_t)Trajectory_get_target_position(&(o->trajectory));
+    //ends here
 }
 
 static void Joint_send_debug_message(const char *message, uint8_t jid, uint16_t par16, uint64_t par64)
@@ -782,7 +785,8 @@ CTRL_UNITS Joint_do_pwm_or_current_control(Joint* o)
 CTRL_UNITS Joint_do_vel_control(Joint* o)
 {            
     PID *pid = (o->control_mode == eomc_controlmode_direct || o->control_mode == eomc_controlmode_vel_direct) ?  &o->directPID : &o->minjerkPID; 
-    
+    static int32_t counter=0;
+    static int32_t counter_print =0;
     o->pushing_limit = FALSE;
     
     if (o->control_mode == eomc_controlmode_torque)
@@ -866,6 +870,7 @@ CTRL_UNITS Joint_do_vel_control(Joint* o)
             case eomc_controlmode_vel_direct:
                 o->pos_err = ZERO;
                 o->vel_ref = pid->Kff * o->vel_ref;
+                counter++;
                 break;
             
             case eomc_controlmode_mixed:
@@ -899,7 +904,23 @@ CTRL_UNITS Joint_do_vel_control(Joint* o)
         }
 
         LIMIT(o->vel_ref, o->vel_max);
-                
+
+        if(counter_print >100)
+        {
+            static char str[100];
+            snprintf(str, sizeof(str),"CM=%d, pos_ref=%.2f, vel_ref=%.2f, velTrg=%.2f", o->control_mode, o->pos_ref, o->vel_ref, o->trajectory.target_vel );
+            eOerrmanDescriptor_t errdes = {0};
+
+            errdes.code             = eoerror_code_get(eoerror_category_Debug, eoerror_value_DEB_tag01);
+            errdes.sourcedevice     = eo_errman_sourcedevice_localboard;
+            errdes.sourceaddress    = o->ID;
+            errdes.par16            = 0;
+            errdes.par64            = counter;
+            eo_errman_Error(eo_errman_GetHandle(), eo_errortype_debug, str, NULL, &errdes); 
+            counter_print = 0;
+        } 
+        counter_print++;
+        
         return o->output = o->vel_ref;
     }
     else // COMPLIANT
@@ -925,9 +946,6 @@ CTRL_UNITS Joint_do_vel_control(Joint* o)
         {
             o->vel_ref += pid->Kp * (o->pos_err + o->Kadmitt * o->trq_fbk);
         }
-                
-        LIMIT(o->vel_ref, o->vel_max);
-                
         return o->output = o->vel_ref;
     }
 }
@@ -958,7 +976,7 @@ void Joint_get_impedance(Joint* o, eOmc_impedance_t* impedance)
 void Joint_get_state(Joint* o, int j, eOmc_joint_status_t* joint_state)
 {
     joint_state->core.modes.interactionmodestatus    = o->interaction_mode;
-    joint_state->core.modes.controlmodestatus        = o->control_mode;
+    joint_state->core.modes.controlmodestatus        = (o->control_mode == eomc_controlmode_vel_direct) ? eomc_controlmode_velocity : o->control_mode;
     joint_state->core.modes.ismotiondone             = Trajectory_is_done(&o->trajectory);
     joint_state->core.measures.meas_position         = o->pos_fbk;           
     joint_state->core.measures.meas_velocity         = o->vel_fbk;        
@@ -1085,8 +1103,12 @@ static BOOL Joint_set_pos_ref_in_calib(Joint* o, CTRL_UNITS pos_ref, CTRL_UNITS 
     return(Joint_set_pos_ref_core(o, pos_ref_limited, vel_ref));
 }
 
+BOOL Joint_set_vel_raw(Joint* o, CTRL_UNITS vel_ref);
+
 BOOL Joint_set_vel_ref(Joint* o, CTRL_UNITS vel_ref, CTRL_UNITS acc_ref)
 {
+    return Joint_set_vel_raw(o, vel_ref);
+    
     WatchDog_rearm(&o->vel_ref_wdog);
     
     if ((o->control_mode != eomc_controlmode_vel_direct) &&

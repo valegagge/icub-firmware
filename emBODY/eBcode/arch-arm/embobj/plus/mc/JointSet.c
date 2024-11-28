@@ -392,6 +392,13 @@ static eoas_pos_ROT_t JointSet_calib14_ROT2pos_ROT(eOmc_calib14_ROT_t rot);
 
 void JointSet_do_control(JointSet* o)
 {
+    static int count = 0;
+    if(count >100)
+    {    
+        count=0;
+        JointSet_send_debug_message("MOTOR_INPUT_TYPE", 0, o->motor_input_type, o->motor_input_type);
+    }
+    count++;
     switch (o->motor_input_type)
     {
     case eomc_ctrl_out_type_pwm:
@@ -410,6 +417,8 @@ void JointSet_do_control(JointSet* o)
         JointSet_do_off(o);
         return;
     }
+    
+    
 }
 
 static void JointSet_do_wait_calibration(JointSet* o);
@@ -499,6 +508,11 @@ static int control_output_type(JointSet* o, int16_t control_mode, int16_t intera
 
 BOOL JointSet_set_control_mode(JointSet* o, eOmc_controlmode_command_t control_mode_cmd)
 {
+    if (control_mode_cmd == eomc_controlmode_cmd_velocity)
+    {
+        control_mode_cmd = eomc_controlmode_cmd_vel_direct;
+    }
+   
 #ifdef WRIST_MK2
     if(eomc_jsetconstraint_ergocubwrist == o->special_constraint)
     {
@@ -2259,6 +2273,57 @@ extern void JointSet_init_wrist_decoupler(JointSet* o)
     //o->arm_pos_off[2] =  40.0f;
 
 }
+
+
+
+void JointSet_update_status_reference(JointSet* o, Joint* j_ptr, int j)
+{    
+    Trajectory *traj_ptr = &(o->wristMK2.ypr_trajectory[j]);
+    
+    switch (o->control_mode)
+    {
+        case eomc_controlmode_idle:
+        case eomc_controlmode_notConfigured:
+        case eomc_controlmode_configured:
+            break;
+        
+        case eomc_controlmode_mixed:
+        case eomc_ctrlmval_velocity_pos:
+            j_ptr->eo_joint_ptr->status.target.trgt_velocity = Trajectory_get_target_velocity(traj_ptr);
+            j_ptr->eo_joint_ptr->status.target.trgt_position = Trajectory_get_target_position(traj_ptr);
+            break;
+        case eomc_controlmode_velocity: //
+        case eomc_controlmode_vel_direct:
+        case eomc_controlmode_impedance_vel:
+            j_ptr->eo_joint_ptr->status.target.trgt_velocity = Trajectory_get_target_velocity(traj_ptr);
+            break;
+        case eomc_controlmode_position:
+        case eomc_controlmode_impedance_pos:
+            j_ptr->eo_joint_ptr->status.target.trgt_position = Trajectory_get_target_position(traj_ptr);
+            break;
+        case eomc_controlmode_direct:
+            j_ptr->eo_joint_ptr->status.target.trgt_positionraw = Trajectory_get_target_position(traj_ptr);
+            break;
+                
+        case eomc_controlmode_openloop:
+            j_ptr->eo_joint_ptr->status.target.trgt_pwm = j_ptr->out_ref;
+            break;
+
+        case eomc_controlmode_current:
+            j_ptr->eo_joint_ptr->status.target.trgt_current = j_ptr->out_ref;
+            break;
+        
+        case eomc_controlmode_torque:
+            j_ptr->eo_joint_ptr->status.target.trgt_torque = j_ptr->trq_ref;
+            break;
+            
+        default:
+            ;
+    }
+
+}
+
+
 
 
 BOOL JointSet_set_pos_ref(JointSet* o, int j, CTRL_UNITS pos_ref, CTRL_UNITS vel_ref) //use only in WRIST_MK2 case
