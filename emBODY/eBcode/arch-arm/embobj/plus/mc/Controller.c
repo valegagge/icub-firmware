@@ -547,8 +547,18 @@ static void get_jomo_coupling_info(const eOmc_4jomo_coupling_t *jomoCouplingInfo
         o->jointSet[s].postrj_ctrl_out_type = jsetcfg[s].pid_output_types.postrj_ctrl_out_type;
         o->jointSet[s].veltrj_ctrl_out_type = jsetcfg[s].pid_output_types.veltrj_ctrl_out_type;
         o->jointSet[s].mixtrj_ctrl_out_type = jsetcfg[s].pid_output_types.mixtrj_ctrl_out_type;
-        o->jointSet[s].posdir_ctrl_out_type = jsetcfg[s].pid_output_types.posdir_ctrl_out_type;
-        o->jointSet[s].veldir_ctrl_out_type = jsetcfg[s].pid_output_types.veldir_ctrl_out_type;
+        // TEST_VEL
+        //o->jointSet[s].posdir_ctrl_out_type = jsetcfg[s].pid_output_types.posdir_ctrl_out_type; // original version
+        //o->jointSet[s].veldir_ctrl_out_type = jsetcfg[s].pid_output_types.veldir_ctrl_out_type; // original version
+        
+        o->jointSet[s].veldir_ctrl_out_type = eomc_ctrl_out_type_vel; //used on the robot with succsessfull test
+        o->jointSet[s].posdir_ctrl_out_type = eomc_ctrl_out_type_vel; ///used on the robot with succsessfull test
+        
+        //TEST IN  THE FUTURE
+        //o->jointSet[s].posdir_ctrl_out_type = jsetcfg[s].pid_output_types.posdir_ctrl_out_type
+        //o->jointSet[s].veldir_ctrl_out_type = jsetcfg[s].pid_output_types.posdir_ctrl_out_type;
+        
+        
         
         o->jointSet[s].USE_SPEED_FBK_FROM_MOTORS = jsetcfg[s].usespeedfeedbackfrommotors;
         
@@ -909,8 +919,22 @@ void MController_config_joint(int j, eOmc_joint_config_t* config) //
     
     MController_config_minjerk_pid(j, &(config->pidtrajectory));
     
-    MController_config_direct_pid(j, &(config->pidtrajectory));
-    //MController_config_direct_pid(j, &(config->piddirect));
+    //MController_config_direct_pid(j, &(config->pidtrajectory));
+    eOmc_PID_t                  piddirect;
+    
+
+    piddirect.kp = 5;                 /**< proportional gain */
+    piddirect.ki = 0;                 /**< integral gain */
+    piddirect.kd =0 ;                 /**< derivative gain */
+    piddirect.kff = 1;
+    piddirect.limitonintegral =0;    /**< limit of integral term */
+    piddirect.limitonoutput = 32000;      /**< limit of the output of the pid */
+    piddirect.offset = 0;             /**< the k0 in the pid formula */
+    piddirect.stiction_up_val = 0;
+    piddirect.stiction_down_val=0;
+    piddirect.scale=0;
+
+    MController_config_direct_pid(j, &piddirect);
     
     MController_motor_config_torque_PID(j, &(config->pidtorque));
     
@@ -1482,7 +1506,7 @@ void MController_update_joint_targets(int j)
 void MController_config_minjerk_pid(int j, eOmc_PID_t *pid_conf)
 {    
     Joint_config_minjerk_PID(smc->joint+j, pid_conf);
-    Joint_config_direct_PID(smc->joint+j, pid_conf);
+    //Joint_config_direct_PID(smc->joint+j, pid_conf); //VALE
     // marco.accame on 16apr2025: it was like the following but i added the above funtions so that 
     // only the Joint depends on PID
 //    PID_config(&(smc->joint[j].minjerkPID), pid_conf);
@@ -1492,9 +1516,21 @@ void MController_config_minjerk_pid(int j, eOmc_PID_t *pid_conf)
 void MController_config_direct_pid(int j, eOmc_PID_t *pid_conf)
 {
     Joint_config_direct_PID(smc->joint+j, pid_conf);
+
+     static char str[100];
+    snprintf(str, sizeof(str),"**** PID DIRECT CONFIGURED WITH kp=%.2f, kff=%.2f ,maxout=%.2f", smc->joint[j].directPID.Kp, smc->joint[j].directPID.Kff, smc->joint[j].directPID.out_max );
+    eOerrmanDescriptor_t errdes = {0};
+
+    errdes.code             = eoerror_code_get(eoerror_category_Debug, eoerror_value_DEB_tag01);
+    errdes.sourcedevice     = eo_errman_sourcedevice_localboard;
+    errdes.sourceaddress    = j;
+    errdes.par16            = 0;
+    errdes.par64            = 0;
+    eo_errman_Error(eo_errman_GetHandle(), eo_errortype_debug, str, NULL, &errdes); 
     // marco.accame on 16apr2025: it was like the following but i added the above funtions so that 
     // only the Joint depends on PID    
 //    PID_config(&(smc->joint[j].directPID), pid_conf);
+
 }
 
 void MController_config_joint_pos_limits(int j, int32_t pos_min, int32_t pos_max)
