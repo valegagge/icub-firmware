@@ -81,22 +81,16 @@ extern "C" {
 #define EOMTHEEMSAPPLCFG_VERSION_MAJOR          (VERSION_MAJOR_OFFSET+3)
 //  <o> minor           <0-255> 
 //  <o> minor           <0-255>
-<<<<<<< HEAD
-#define EOMTHEEMSAPPLCFG_VERSION_MINOR          104
-=======
-
-#define EOMTHEEMSAPPLCFG_VERSION_MINOR          99
-
->>>>>>> 0e2b56fdb (EMS 3.195: use vel direct instaed of vel with debug prints)
+#define EOMTHEEMSAPPLCFG_VERSION_MINOR          220
 //  </h>version
 
 //  <h> build date
 //  <o> year            <2010-2030>
 #define EOMTHEEMSAPPLCFG_BUILDDATE_YEAR         2025
 //  <o> month           <1-12>
-#define EOMTHEEMSAPPLCFG_BUILDDATE_MONTH        3
+#define EOMTHEEMSAPPLCFG_BUILDDATE_MONTH        5
 //  <o> day             <1-31>
-#define EOMTHEEMSAPPLCFG_BUILDDATE_DAY          28
+#define EOMTHEEMSAPPLCFG_BUILDDATE_DAY          21
 //  <o> hour            <0-23>
 #define EOMTHEEMSAPPLCFG_BUILDDATE_HOUR         17
 //  <o> minute          <0-59>
