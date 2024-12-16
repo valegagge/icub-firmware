@@ -84,6 +84,7 @@ extern "C" {
 
 #define EOMTHEEMSAPPLCFG_VERSION_MINOR          99
 
+
 //  </h>version
 
 //  <h> build date
