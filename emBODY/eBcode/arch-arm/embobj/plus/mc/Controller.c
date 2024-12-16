@@ -977,22 +977,22 @@ void MController_config_joint(int j, eOmc_joint_config_t* config) //
     
     MController_config_minjerk_pid(j, &(config->pidtrajectory));
     
-    //MController_config_direct_pid(j, &(config->pidtrajectory));
-    eOmc_PID_t                  piddirect;
-    
+    MController_config_direct_pid(j, &(config->piddirect));
+//    eOmc_PID_t                  piddirect;
+//    
 
-    piddirect.kp = 5;                 /**< proportional gain */
-    piddirect.ki = 0;                 /**< integral gain */
-    piddirect.kd =0 ;                 /**< derivative gain */
-    piddirect.kff = 1;
-    piddirect.limitonintegral =0;    /**< limit of integral term */
-    piddirect.limitonoutput = 32000;      /**< limit of the output of the pid */
-    piddirect.offset = 0;             /**< the k0 in the pid formula */
-    piddirect.stiction_up_val = 0;
-    piddirect.stiction_down_val=0;
-    piddirect.scale=0;
+//    piddirect.kp = 5;                 /**< proportional gain */
+//    piddirect.ki = 0;                 /**< integral gain */
+//    piddirect.kd =0 ;                 /**< derivative gain */
+//    piddirect.kff = 1;
+//    piddirect.limitonintegral =0;    /**< limit of integral term */
+//    piddirect.limitonoutput = 32000;      /**< limit of the output of the pid */
+//    piddirect.offset = 0;             /**< the k0 in the pid formula */
+//    piddirect.stiction_up_val = 0;
+//    piddirect.stiction_down_val=0;
+//    piddirect.scale=0;
 
-    MController_config_direct_pid(j, &piddirect);
+//    MController_config_direct_pid(j, &piddirect);
     
     MController_motor_config_torque_PID(j, &(config->pidtorque));
     
