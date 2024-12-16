@@ -967,8 +967,9 @@ CTRL_UNITS Joint_do_vel_control(Joint* o)
 
         if(counter_print >100)
         {
-            static char str[100];
-            snprintf(str, sizeof(str),"CM=%d, kp=%.2f, kff=%.2f pos_ref=%.2f, vel_ref=%.2f, velTrg=%.2f", o->control_mode, pid->Kp, pid->Kff, o->pos_ref, o->vel_ref, o->trajectory.target_vel );
+            static char str[200];
+            //snprintf(str, sizeof(str),"CM=%d, kp=%.2f, kff=%.2f pos_ref=%.2f, vel_ref=%.2f, velTrg=%.2f", o->control_mode, pid->Kp, pid->Kff, o->pos_ref, o->vel_ref, o->trajectory.target_vel );
+            snprintf(str, sizeof(str),"p_ref=%.2f, v_ref=%.2f, vTrg=%.2f", o->pos_ref, o->vel_ref, o->trajectory.target_vel );
             eOerrmanDescriptor_t errdes = {0};
 
             errdes.code             = eoerror_code_get(eoerror_category_Debug, eoerror_value_DEB_tag01);
