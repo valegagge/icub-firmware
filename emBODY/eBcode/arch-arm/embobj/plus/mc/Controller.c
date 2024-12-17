@@ -977,7 +977,7 @@ void MController_config_joint(int j, eOmc_joint_config_t* config) //
     
     MController_config_minjerk_pid(j, &(config->pidtrajectory));
     
-    MController_config_direct_pid(j, &(config->piddirect));
+    //MController_config_direct_pid(j, &(config->piddirect));
 //    eOmc_PID_t                  piddirect;
 //    
 
@@ -1014,6 +1014,18 @@ void MController_config_joint(int j, eOmc_joint_config_t* config) //
             AbsEncoder_config_divisor(smc->absEncoder+j, config->gearbox_E2J);
         }
     }
+    
+    
+    static char str[200];
+    snprintf(str, sizeof(str),"* PID MINJERK CONFIGURED WITH kp=%.2f, kff=%.2f ,ki=%.2f", smc->joint[j].minjerkPID.Kp, smc->joint[j].minjerkPID.Kff, smc->joint[j].minjerkPID.Ki );
+    eOerrmanDescriptor_t errdes = {0};
+
+    errdes.code             = eoerror_code_get(eoerror_category_Debug, eoerror_value_DEB_tag01);
+    errdes.sourcedevice     = eo_errman_sourcedevice_localboard;
+    errdes.sourceaddress    = j;
+    errdes.par16            = smc->joint[j].minjerkPID.Kff;
+    errdes.par64            = smc->joint[j].minjerkPID.Ki;
+    eo_errman_Error(eo_errman_GetHandle(), eo_errortype_debug, str, NULL, &errdes);
 }
 
 void MController_config_motor(int m, eOmc_motor_config_t* config) //
@@ -1553,7 +1565,7 @@ void MController_update_joint_targets(int j)
 void MController_config_minjerk_pid(int j, eOmc_PID_t *pid_conf)
 {
     PID_config(&(smc->joint[j].minjerkPID), pid_conf);
-    //PID_config(&(smc->joint[j].directPID), pid_conf); VALE! ATTENZIONE DA MODIFICARE!!!!
+    PID_config(&(smc->joint[j].directPID), pid_conf); //VALE! ATTENZIONE DA MODIFICARE!!!!
 }
 
 void MController_config_direct_pid(int j, eOmc_PID_t *pid_conf)
