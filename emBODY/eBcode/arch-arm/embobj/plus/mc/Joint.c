@@ -620,6 +620,14 @@ CTRL_UNITS Joint_do_pwm_or_current_control(Joint* o)
 {    
     PID *pid = (o->control_mode == eomc_controlmode_direct || o->control_mode == eomc_controlmode_vel_direct) ?  &o->directPID : &o->minjerkPID; 
     
+    
+    static int noflood = 0;
+    if (++noflood > 1000)
+    {
+        noflood = 0;
+    
+        Joint_send_debug_message("PWM or CURRENT", o->ID, o->control_mode, pid->Kp);
+    }
     o->pushing_limit = FALSE;
     
     switch (o->control_mode)
