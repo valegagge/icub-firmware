@@ -984,7 +984,7 @@ CTRL_UNITS Joint_do_vel_control(Joint* o)
             errdes.sourcedevice     = eo_errman_sourcedevice_localboard;
             errdes.sourceaddress    = o->ID;
             errdes.par16            = 0;
-            errdes.par64            = counter;
+            errdes.par64            = o->control_mode;
             eo_errman_Error(eo_errman_GetHandle(), eo_errortype_debug, str, NULL, &errdes); 
             counter_print = 0;
         } 
@@ -1283,6 +1283,24 @@ BOOL Joint_set_vel_raw(Joint* o, CTRL_UNITS vel_ref)
 #if defined(MC_use_Trajectory)      
     Trajectory_set_vel_raw(&o->trajectory, vel_ref);
 #endif 
+    
+    static int counter_print=0;
+    if(counter_print >100)
+        {
+            static char str[200];
+            
+            snprintf(str, sizeof(str),"Joint_set_vel_raw:v_ref=%.2f", vel_ref );
+            eOerrmanDescriptor_t errdes = {0};
+
+            errdes.code             = eoerror_code_get(eoerror_category_Debug, eoerror_value_DEB_tag01);
+            errdes.sourcedevice     = eo_errman_sourcedevice_localboard;
+            errdes.sourceaddress    = o->ID;
+            errdes.par16            = 0;
+            errdes.par64            = o->control_mode;
+            eo_errman_Error(eo_errman_GetHandle(), eo_errortype_debug, str, NULL, &errdes); 
+            counter_print = 0;
+        } 
+        counter_print++;
     
     return TRUE;
 }
