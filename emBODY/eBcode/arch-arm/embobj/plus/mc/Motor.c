@@ -1089,6 +1089,20 @@ void Motor_set_Iqq_ref(Motor* o, int32_t Iqq_ref)
     {
         o->output = o->Iqq_ref = CUT(Iqq_ref, o->Iqq_max);
     }
+    
+    
+    eOerrmanDescriptor_t errdes = {0};
+    static char message[150];
+    errdes.code             = eoerror_code_get(eoerror_category_Debug, eoerror_value_DEB_tag01);
+    errdes.sourcedevice     = eo_errman_sourcedevice_localboard;
+    errdes.sourceaddress    = o->ID;
+    errdes.par16            = 0;
+    errdes.par64            = Iqq_ref;
+    
+    snprintf(message, sizeof(message), "o=%d, fbk=%d", o->output, o->Iqq_fbk);
+    eo_errman_Error(eo_errman_GetHandle(), eo_errortype_debug, message, NULL, &errdes); 
+    
+  
 }
 
 void Motor_set_vel_ref(Motor* o, int32_t vel_ref)
