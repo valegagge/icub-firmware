@@ -1169,11 +1169,19 @@ void Motor_get_state(Motor* o, eOmc_motor_status_t* motor_status)
     }
 }
 
+
+extern int32_t Motor_get_IqqFbk_avg(Motor* o)
+{
+return o->mv_avg.getAvg();
+}
+
+
 void Motor_update_odometry_fbk_can(Motor* o, CanOdometry2FocMsg* can_msg) //
 {
     WatchDog_rearm(&o->can_2FOC_alive_wdog);
     
     o->Iqq_fbk = can_msg->current;
+    o->mv_avg.calculateAvg(o->Iqq_fbk);
     
     o->vel_raw_fbk = can_msg->velocity*1000;
     o->vel_fbk = o->vel_raw_fbk/o->GEARBOX;

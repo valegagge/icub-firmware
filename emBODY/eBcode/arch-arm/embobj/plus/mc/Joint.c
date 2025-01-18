@@ -279,6 +279,7 @@ void Joint_update_status_reference(Joint* o)
 
         case eomc_controlmode_current:
             o->eo_joint_ptr->status.target.trgt_current = o->out_ref;
+        #warning VALE: update the target ref!!
             break;
         
         case eomc_controlmode_torque:
