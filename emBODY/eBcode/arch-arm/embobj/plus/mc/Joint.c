@@ -1165,7 +1165,7 @@ BOOL Joint_set_cur_ref(Joint* o, CTRL_UNITS cur_ref)
     
     o->out_ref = cur_ref;
 
-    //Joint_send_debug_message("current reference",o->ID,0,(uint64_t)cur_ref);
+    Joint_send_debug_message("current reference",o->ID,0,(uint64_t)cur_ref);
     
     return TRUE;
 }

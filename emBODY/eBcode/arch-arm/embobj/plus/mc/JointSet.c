@@ -668,6 +668,14 @@ BOOL JointSet_set_control_mode(JointSet* o, eOmc_controlmode_command_t control_m
         { 
             Joint_set_control_mode(o->joint+o->joints_of_set[k], control_mode_cmd);
         }
+        
+        if(eomc_controlmode_cmd_current == control_mode_cmd)
+        {
+            for (int k=0; k<N; ++k)
+            { 
+                Joint_set_cur_ref(o->joint+o->joints_of_set[k], Motor_get_IqqFbk_avg(o->motor+o->motors_of_set[k]));
+            }
+        }
         break;
     }    
     default:
@@ -1341,6 +1349,20 @@ static void JointSet_do_current_control(JointSet* o)
                     // motor_current_ref += o->Jmj[m][j]*o->joint[j].output;
                     // transposed direct Jacobian
                     motor_current_ref += o->Jjm[j][m]*o->joint[j].output;
+                    char str[150];
+                    snprintf (str, sizeof(str), "Ref= Jjm[%d ][%d] *%.3f ==> %.3f", j, m,  o->joint[j].output, motor_current_ref);
+                    //embot::core::print("SetMotorRef= Jjm[" + j + "]["+ m + "] * " + o->joint[j].output + "==>" + motor_current_ref);
+                    //embot::core::print(str);
+//                     eOerrmanDescriptor_t errdes = {0};
+//   
+//                    errdes.code             = eoerror_code_get(eoerror_category_Debug, eoerror_value_DEB_tag01);
+//                    errdes.sourcedevice     = eo_errman_sourcedevice_localboard;
+//                    errdes.sourceaddress    = 0;
+//                    errdes.par16            = o->joint[j].output;
+//                    errdes.par64            = motor_current_ref;
+//                    
+//                    
+//                    eo_errman_Error(eo_errman_GetHandle(), eo_errortype_debug, str, NULL, &errdes); 
                 }
             }
             else

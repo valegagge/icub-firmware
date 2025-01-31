@@ -314,6 +314,8 @@ void Motor_init(Motor* o) //
     o->sensorless_torque = FALSE;
     o->torque_estimator.initialize();
 #endif
+
+    o->mv_avg.init(100, 0);
 }
 
 void Motor_config(Motor* o, uint8_t ID, eOmc_motor_config_t* config) //
@@ -1148,6 +1150,24 @@ void Motor_set_Iqq_ref(Motor* o, int32_t Iqq_ref)
     {
         o->output = o->Iqq_ref = CUT(Iqq_ref, o->Iqq_max);
     }
+    
+    static int count =0;
+    eOerrmanDescriptor_t errdes = {0};
+    static char message[150];
+    errdes.code             = eoerror_code_get(eoerror_category_Debug, eoerror_value_DEB_tag01);
+    errdes.sourcedevice     = eo_errman_sourcedevice_localboard;
+    errdes.sourceaddress    = o->ID;
+    errdes.par16            = 0;
+    errdes.par64            = Iqq_ref;
+    
+    count ++;
+    if(count >100)
+    {
+        snprintf(message, sizeof(message), "o=%d, fbk=%d", o->output, o->Iqq_fbk);
+        eo_errman_Error(eo_errman_GetHandle(), eo_errortype_debug, message, NULL, &errdes); 
+        count=0;
+    }
+  
 }
 
 void Motor_set_vel_ref(Motor* o, int32_t vel_ref)
@@ -1214,11 +1234,25 @@ void Motor_get_state(Motor* o, eOmc_motor_status_t* motor_status)
     }
 }
 
+
+extern int32_t Motor_get_IqqFbk_avg(Motor* o)
+{
+    return o->mv_avg.getAvg();
+
+    //return o->Iqq_fbk;
+}
+
+
 void Motor_update_odometry_fbk_can(Motor* o, CanOdometry2FocMsg* can_msg) //
 {
     WatchDog_rearm(&o->can_2FOC_alive_wdog);
     
     o->Iqq_fbk = can_msg->current;
+    o->mv_avg.calculateAvg(o->Iqq_fbk);
+    
+    static char str[150];
+    snprintf (str, sizeof(str), "Iqq_fbk= %d, avg = %.3f", o->Iqq_fbk, o->mv_avg.getAvg());
+    embot::core::print(str);
     
     o->vel_raw_fbk = can_msg->velocity*1000;
     o->vel_fbk = o->vel_raw_fbk/o->GEARBOX;
