@@ -977,7 +977,7 @@ void MController_config_joint(int j, eOmc_joint_config_t* config) //
     
     MController_config_minjerk_pid(j, &(config->pidtrajectory));
     
-    //MController_config_direct_pid(j, &(config->piddirect));
+    MController_config_direct_pid(j, &(config->piddirect));
 //    eOmc_PID_t                  piddirect;
 //    
 
