@@ -958,16 +958,16 @@ void MController_config_joint(int j, eOmc_joint_config_t* config) //
     }
     
     
-    static char str[200];
-    snprintf(str, sizeof(str),"* PID MINJERK CONFIGURED WITH kp=%.2f, kff=%.2f ,ki=%.2f", smc->joint[j].minjerkPID.Kp, smc->joint[j].minjerkPID.Kff, smc->joint[j].minjerkPID.Ki );
-    eOerrmanDescriptor_t errdes = {0};
+//    static char str[200];
+//    snprintf(str, sizeof(str),"* PID MINJERK CONFIGURED WITH kp=%.2f, kff=%.2f ,ki=%.2f", smc->joint[j].minjerkPID.Kp, smc->joint[j].minjerkPID.Kff, smc->joint[j].minjerkPID.Ki );
+//    eOerrmanDescriptor_t errdes = {0};
 
-    errdes.code             = eoerror_code_get(eoerror_category_Debug, eoerror_value_DEB_tag01);
-    errdes.sourcedevice     = eo_errman_sourcedevice_localboard;
-    errdes.sourceaddress    = j;
-    errdes.par16            = smc->joint[j].minjerkPID.Kff;
-    errdes.par64            = smc->joint[j].minjerkPID.Ki;
-    eo_errman_Error(eo_errman_GetHandle(), eo_errortype_debug, str, NULL, &errdes);
+//    errdes.code             = eoerror_code_get(eoerror_category_Debug, eoerror_value_DEB_tag01);
+//    errdes.sourcedevice     = eo_errman_sourcedevice_localboard;
+//    errdes.sourceaddress    = j;
+//    errdes.par16            = smc->joint[j].minjerkPID.Kff;
+//    errdes.par64            = smc->joint[j].minjerkPID.Ki;
+//    eo_errman_Error(eo_errman_GetHandle(), eo_errortype_debug, str, NULL, &errdes);
 }
 
 void MController_config_motor(int m, eOmc_motor_config_t* config) //
@@ -1525,19 +1525,19 @@ void MController_config_direct_pid(int j, eOmc_PID_t *pid_conf)
 {
     Joint_config_direct_PID(smc->joint+j, pid_conf);
 
-     static char str[100];
-    snprintf(str, sizeof(str),"**** PID DIRECT CONFIGURED WITH kp=%.2f, kff=%.2f ,maxout=%.2f", smc->joint[j].directPID.Kp, smc->joint[j].directPID.Kff, smc->joint[j].directPID.out_max );
-    eOerrmanDescriptor_t errdes = {0};
+//     static char str[100];
+//    snprintf(str, sizeof(str),"**** PID DIRECT CONFIGURED WITH kp=%.2f, kff=%.2f ,maxout=%.2f", smc->joint[j].directPID.Kp, smc->joint[j].directPID.Kff, smc->joint[j].directPID.out_max );
+//    eOerrmanDescriptor_t errdes = {0};
 
-    errdes.code             = eoerror_code_get(eoerror_category_Debug, eoerror_value_DEB_tag01);
-    errdes.sourcedevice     = eo_errman_sourcedevice_localboard;
-    errdes.sourceaddress    = j;
-    errdes.par16            = 0;
-    errdes.par64            = 0;
-    eo_errman_Error(eo_errman_GetHandle(), eo_errortype_debug, str, NULL, &errdes); 
-    // marco.accame on 16apr2025: it was like the following but i added the above funtions so that 
-    // only the Joint depends on PID    
-//    PID_config(&(smc->joint[j].directPID), pid_conf);
+//    errdes.code             = eoerror_code_get(eoerror_category_Debug, eoerror_value_DEB_tag01);
+//    errdes.sourcedevice     = eo_errman_sourcedevice_localboard;
+//    errdes.sourceaddress    = j;
+//    errdes.par16            = 0;
+//    errdes.par64            = 0;
+//    eo_errman_Error(eo_errman_GetHandle(), eo_errortype_debug, str, NULL, &errdes); 
+//    // marco.accame on 16apr2025: it was like the following but i added the above funtions so that 
+//    // only the Joint depends on PID    
+////    PID_config(&(smc->joint[j].directPID), pid_conf);
 
 }
 

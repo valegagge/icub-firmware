@@ -621,13 +621,13 @@ CTRL_UNITS Joint_do_pwm_or_current_control(Joint* o)
     PID *pid = (o->control_mode == eomc_controlmode_direct || o->control_mode == eomc_controlmode_vel_direct) ?  &o->directPID : &o->minjerkPID; 
     
     
-    static int noflood = 0;
-    if (++noflood > 1000)
-    {
-        noflood = 0;
-    
-        Joint_send_debug_message("PWM or CURRENT", o->ID, o->control_mode, pid->Kp);
-    }
+//    static int noflood = 0;
+//    if (++noflood > 1000)
+//    {
+//        noflood = 0;
+//    
+//        Joint_send_debug_message("PWM or CURRENT", o->ID, o->control_mode, pid->Kp);
+//    }
     o->pushing_limit = FALSE;
     
     switch (o->control_mode)
@@ -838,8 +838,8 @@ CTRL_UNITS Joint_do_pwm_or_current_control(Joint* o)
 CTRL_UNITS Joint_do_vel_control(Joint* o)
 {            
     PID *pid = (o->control_mode == eomc_controlmode_direct || o->control_mode == eomc_controlmode_vel_direct) ?  &o->directPID : &o->minjerkPID; 
-    static int32_t counter=0;
-    static int32_t counter_print =0;
+//    static int32_t counter=0;
+//    static int32_t counter_print =0;
     o->pushing_limit = FALSE;
     
     if (o->control_mode == eomc_controlmode_torque)
@@ -938,7 +938,7 @@ CTRL_UNITS Joint_do_vel_control(Joint* o)
             case eomc_controlmode_vel_direct:
                 o->pos_err = ZERO;
                 o->vel_ref = pid->Kff * o->vel_ref;
-                counter++;
+                //counter++;
                 break;
             
             case eomc_controlmode_mixed:
@@ -995,22 +995,22 @@ CTRL_UNITS Joint_do_vel_control(Joint* o)
         
         LIMIT(o->vel_ref, o->vel_max);
 
-        if(counter_print >100)
-        {
-            static char str[200];
-            //snprintf(str, sizeof(str),"CM=%d, kp=%.2f, kff=%.2f pos_ref=%.2f, vel_ref=%.2f, velTrg=%.2f", o->control_mode, pid->Kp, pid->Kff, o->pos_ref, o->vel_ref, o->trajectory.target_vel );
-            snprintf(str, sizeof(str),"p_ref=%.2f, v_ref=%.2f, vTrg=%.2f", o->pos_ref, o->vel_ref, o->trajectory.target_vel );
-            eOerrmanDescriptor_t errdes = {0};
+//        if(counter_print >100)
+//        {
+//            static char str[200];
+//            //snprintf(str, sizeof(str),"CM=%d, kp=%.2f, kff=%.2f pos_ref=%.2f, vel_ref=%.2f, velTrg=%.2f", o->control_mode, pid->Kp, pid->Kff, o->pos_ref, o->vel_ref, o->trajectory.target_vel );
+//            snprintf(str, sizeof(str),"p_ref=%.2f, v_ref=%.2f, vTrg=%.2f", o->pos_ref, o->vel_ref, o->trajectory.target_vel );
+//            eOerrmanDescriptor_t errdes = {0};
 
-            errdes.code             = eoerror_code_get(eoerror_category_Debug, eoerror_value_DEB_tag01);
-            errdes.sourcedevice     = eo_errman_sourcedevice_localboard;
-            errdes.sourceaddress    = o->ID;
-            errdes.par16            = 0;
-            errdes.par64            = o->control_mode;
-            eo_errman_Error(eo_errman_GetHandle(), eo_errortype_debug, str, NULL, &errdes); 
-            counter_print = 0;
-        } 
-        counter_print++;
+//            errdes.code             = eoerror_code_get(eoerror_category_Debug, eoerror_value_DEB_tag01);
+//            errdes.sourcedevice     = eo_errman_sourcedevice_localboard;
+//            errdes.sourceaddress    = o->ID;
+//            errdes.par16            = 0;
+//            errdes.par64            = o->control_mode;
+//            eo_errman_Error(eo_errman_GetHandle(), eo_errortype_debug, str, NULL, &errdes); 
+//            counter_print = 0;
+//        } 
+//        counter_print++;
         
         return o->output = o->vel_ref;
     }
@@ -1306,23 +1306,23 @@ BOOL Joint_set_vel_raw(Joint* o, CTRL_UNITS vel_ref)
     Trajectory_set_vel_raw(&o->trajectory, vel_ref);
 #endif 
     
-    static int counter_print=0;
-    if(counter_print >100)
-        {
-            static char str[200];
-            
-            snprintf(str, sizeof(str),"Joint_set_vel_raw:v_ref=%.2f", vel_ref );
-            eOerrmanDescriptor_t errdes = {0};
+   // static int counter_print=0;
+//    if(counter_print >100)
+//        {
+//            static char str[200];
+//            
+//            snprintf(str, sizeof(str),"Joint_set_vel_raw:v_ref=%.2f", vel_ref );
+//            eOerrmanDescriptor_t errdes = {0};
 
-            errdes.code             = eoerror_code_get(eoerror_category_Debug, eoerror_value_DEB_tag01);
-            errdes.sourcedevice     = eo_errman_sourcedevice_localboard;
-            errdes.sourceaddress    = o->ID;
-            errdes.par16            = 0;
-            errdes.par64            = o->control_mode;
-            eo_errman_Error(eo_errman_GetHandle(), eo_errortype_debug, str, NULL, &errdes); 
-            counter_print = 0;
-        } 
-        counter_print++;
+//            errdes.code             = eoerror_code_get(eoerror_category_Debug, eoerror_value_DEB_tag01);
+//            errdes.sourcedevice     = eo_errman_sourcedevice_localboard;
+//            errdes.sourceaddress    = o->ID;
+//            errdes.par16            = 0;
+//            errdes.par64            = o->control_mode;
+//            eo_errman_Error(eo_errman_GetHandle(), eo_errortype_debug, str, NULL, &errdes); 
+//            counter_print = 0;
+//        } 
+//        counter_print++;
     
     return TRUE;
 }
